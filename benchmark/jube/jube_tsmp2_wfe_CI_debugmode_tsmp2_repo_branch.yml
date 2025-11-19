@@ -1,0 +1,529 @@
+# -------------------------------------------------------------------------------------------------
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (C) 2025 Ana González-Nicolás <a.gonzalez-nicolas@fz-juelich.de>
+#
+# -------------------------------------------------------------------------------------------------
+# TO DOs:
+#   - Add ParflowGPU
+#   - Test with other machines (only JURECA checked)
+#   - Compute ntasks for each model_id (or retrieve)
+#   - Compute taskspernode and threadspertask for each model_id --> add with platform.xml (internal sbatch)
+#   - Add Ideal scaling case (Stefan Poll) https://github.com/HPSCTerrSys/simexp_ideal_scalhom_icon-eclm-parflow_wfe-case
+#   - Add comparison results?     
+#
+# -------------------------------------------------------------------------------------------------
+# Section 0: Preamble
+# -------------------------------------------------------------------------------------------------
+# The name of the benchmark
+name: TSMP2_WFE
+
+# Working directory of the workflow step
+# Set the outpath to `/dev/null` to force the user to specify an output path manually
+# jube -v run -r -e --tag <machineTag> <combinationTag> --outpath ./outpath  jube_tsmp2_build.yml 
+outpath: /dev/null
+
+# -------------------------------------------------------------------------------------------------
+# Section 1: Parameter Configuration
+# -------------------------------------------------------------------------------------------------
+
+# Make auxiliary source/files available to the workflow
+# The locations can be relative to the jube file
+# .../benchmark/jube/jube_tsmp2_wfe_CI.yml
+fileset:
+ - name: auxreference
+   copy: /p/project1/cslts/shared_data/CI_TSMP2/compare_ref_TSMP2_WFE_ideal/${model_id}/*
+ - name: auxcompare
+   copy: ../../usecompare/*
+
+parameterset:
+  # 0. System specific information running the benchmark
+  #    Tags for each machine: jureca, juwels, jupiter, jusuf
+  - name: systemInfo
+    parameter:
+      - name: system_name_hardcode
+        mode: shell
+        _: "cat /etc/FZJ/systemname |tr -d \"\n\""
+      # Eventually, the version would be dynamically read, till then we hardcode the value.
+      # --> NOT USED ?--> TO DO: REMOVE
+      - name: system_version
+        mode: shell
+        _: "echo 2024.01"
+      - {name: system_name, tag: jureca, _: JURECADC}
+      - {name: system_name, tag: juwels, _: JUWELS}
+      - {name: system_name, tag: jupiter, _: JUPITER}
+      - {name: system_name, tag: jusuf, _: JUSUF}
+
+      - {name: taskspernode, tag: gpu, _: 4}
+      - {name: taskspernode, tag: jureca, _: 128}
+      - {name: taskspernode, tag: juwels, _: 48}
+      - {name: taskspernode, tag: jupiter, _: 288}
+      - {name: taskspernode, tag: jusuf, _: 128}
+      
+      - {name: threadspertask, tag: gpu, _: 4}
+      - {name: threadspertask, tag: jureca, _: 128}
+      - {name: threadspertask, tag: juwels, _: 48}
+      - {name: threadspertask, tag: jupiter, _: 288}
+      - {name: threadspertask, tag: jusuf, _: 128}
+
+      
+  # 1. File name to check run is finished   
+  - name: finished_run
+    parameter:
+      - {name: done_run, _: ready}
+ 
+ 
+  # 2. TSMP2-components for the build
+  #    Tags for each TSMP2 component: icon, eclm, parflow
+  #    If no component-combination is specified, it will build by default "eclm" 
+  #    If no environment is specified, it will use "default.2025.env"
+  #    a) combination_str   --> components for the build command
+  #    b) model_id          --> model ID to use for the building folders
+  #    c) env_str           --> tag that defines the environment
+  #
+  - name: combinationTsmp
+    parameter: 
+  #  
+  # 2.a For the build command: TO DO add parflowGPU
+    - {name: combination_str, tag: icon+!eclm+!parflow, _: --icon}
+    - {name: combination_str, tag: eclm+!icon+!parflow, _: --eclm}
+    - {name: combination_str, tag: parflow+!icon+!eclm, _: --parflow}
+    - {name: combination_str, tag: icon+eclm+!parflow, _: --icon --eclm}
+    - {name: combination_str, tag: eclm+parflow+!icon, _: --parflow --eclm}
+    - {name: combination_str, tag: icon+eclm+parflow, _: --icon --eclm --parflow}
+    - {name: combination_str, tag: "!icon+!eclm+!parflow", _: --eclm}
+  #
+    # 2.b Model ID for build:
+    - {name: model_id, tag: icon+!eclm+!parflow, _: ICON}
+    - {name: model_id, tag: eclm+!icon+!parflow, _: eCLM}
+    - {name: model_id, tag: parflow+!icon+!eclm, _: ParFlow}
+    - {name: model_id, tag: icon+eclm+!parflow, _: ICON-eCLM}
+    - {name: model_id, tag: eclm+parflow+!icon, _: eCLM-ParFlow}
+    - {name: model_id, tag: icon+eclm+parflow, _: ICON-eCLM-ParFlow}
+    - {name: model_id, tag: "!icon+!eclm+!parflow", _: eCLM}
+  #  
+    # 2.b Model ID for running sim:
+    - {name: model_id_sim, tag: icon+!eclm+!parflow, _: icon}
+    - {name: model_id_sim, tag: eclm+!icon+!parflow, _: eclm}
+    - {name: model_id_sim, tag: parflow+!icon+!eclm, _: parflow}
+    - {name: model_id_sim, tag: icon+eclm+!parflow, _: iconeclm}
+    - {name: model_id_sim, tag: eclm+parflow+!icon, _: eclmparflow}
+    - {name: model_id_sim, tag: icon+eclm+parflow, _: iconeclmparflow}
+    - {name: model_id_sim, tag: "!icon+!eclm+!parflow", _: eclm}  
+    
+  # 2.c Environment:
+    - {name: env_str, tag: jsc.2025.intel.psmpi, _: jsc.2025.intel.psmpi}
+    - {name: env_str, tag: jsc.2025.gnu.openmpi, _: jsc.2025.gnu.openmpi}
+    - {name: env_str, tag: jsc.2024.intel.psmpi, _: jsc.2024.intel.psmpi}
+    - {name: env_str, tag: jsc.2023.intel.psmpi, _: jsc.2023.intel.psmpi}
+    - {name: env_str, tag: default.2025.env, _: jsc.2025.intel.psmpi}
+    - {name: env_str, tag: "!jsc.2025.intel.psmpi+!jsc.2025.gnu.openmpi+!jsc.2024.intel.psmpi+!jsc.2023.intel.psmpi+!default.2025.env", _: jsc.2025.intel.psmpi}
+
+
+  # 3. Collect the input parameters which are specified either through:
+  #    - the tags passed on the JUBE-command or 
+  #    - the "usecase" variable of the CI-gitlab 
+  - name: inputParam
+    parameter: 
+
+    # Bench queue: TO DO add GPU queues 
+    - {name: bench_queue, tag: jureca, _: dc-cpu}
+    - {name: bench_queue, tag: juwels, _: batch}
+    - {name: bench_queue, tag: jusuf, _: batch}
+    - {name: bench_queue, tag: jupiter, _: jureap}
+
+    # Change account     
+    - {name: bench_account, tag: jureca, _: slts}
+    - {name: bench_account, tag: juwels, _: slts}
+    - {name: bench_account, tag: juwels, _: slts}    
+    - {name: bench_account, tag: jupiter, _: jureap30}    
+    
+    # Define parameter for the number of nodes
+    - {name: variant, tag: single, _: single}
+    - {name: variant, tag: strong.tiny, _: strong.stiny}
+    - {name: variant, tag: "!single+!strong.tiny", _: single}
+ 
+ 
+  # 4. Execution mode
+  #    full = build + run
+  #    build = only build
+  #    run = only run (it skips build)
+  #    If no execution mode is defined, it will only build
+  #    To be able to use "run" mode, the combination build must have been build previously
+  #
+  - name: execMode
+    parameter:
+      # TO BUILD
+      - name: build_command
+        tag: full|build|!full+!build+!run
+        _: 
+           git clone -b master https://github.com/HPSCTerrSys/TSMP2.git ;
+           wfe_dir=$(realpath TSMP2_workflow-engine) ;
+           cd TSMP2 ;
+           echo $(pwd) ;
+           git switch dev-jube ;
+           git branch -a ;
+           echo "build_tsmp2.sh ${combination_str} --env ./env/${env_str}" ;
+           bash build_tsmp2.sh ${combination_str} --env ./env/${env_str} ;
+           cp -r ./bin/${system_name}_${model_id} /p/project1/cslts/shared_data/CI_TSMP2/bin/${system_name}_${model_id}_${env_str}
+      #
+      # TO NOT BUILD 
+      # To save time when one build for that combination already exists
+      # combination: systemname_components_environment. For instance: JURECADC_ICON-eCLM-ParFlow_jsc.2025.gnu.openmpi
+      - name: build_command
+        tag: run
+        _: 
+           mkdir -p TSMP2/bin ;
+           cp -r /p/project1/cslts/shared_data/CI_TSMP2/bin/${system_name}_${model_id}_${env_str} ./TSMP2/bin/${system_name}_${model_id}
+      #
+      # TO RUN 
+      - name: run_command
+        tag: full|run
+        _: 
+           git clone -b master https://github.com/HPSCTerrSys/TSMP2_workflow-engine.git ;
+           wfe_dir=$(realpath TSMP2_workflow-engine) ;
+           mkdir -p TSMP2_workflow-engine/dta/forcing/eclm ;
+           mkdir -p TSMP2_workflow-engine/dta/forcing/icon/latbc ;
+           ln -sf ${jube_benchmark_home}/download_data/forcing/eclm/forcing TSMP2_workflow-engine/dta/forcing/eclm/forcing ;
+           ln -sf ${jube_benchmark_home}/download_data/forcing/icon/latbc/201707 TSMP2_workflow-engine/dta/forcing/icon/latbc/201707 ;
+           ln -sf ${jube_benchmark_home}/download_data/restart/20170630 TSMP2_workflow-engine/dta/restart/20170630 ;
+           cd ${wfe_dir} ;
+           git submodule update --init ;
+           cd ${wfe_dir}/ctl ;
+           echo "current_dir= $(pwd)" ;
+           sed -i -e 's/MODEL_ID=ICON-eCLM-ParFlow/MODEL_ID=${model_id}/g' master.conf ;
+           sed -i -e 's/lsim=( true true true )/lsim=( true true false )/g' master.conf ;
+           sed -i -e 's/debugmode=false/debugmode=true/g' master.conf ;           
+           sed -i -e 's|tsmp2_dir=$TSMP2_DIR|tsmp2_dir=\"${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine\"|g' master.conf ;
+           sed -i -e 's|tsmp2_install_dir=""|tsmp2_install_dir=\"${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}\"|g' master.conf ;
+           sed -i -e 's|tsmp2_env=""|tsmp2_env=\"${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}\"|g' master.conf ;    
+           sed -i -e 's/joblog=true/joblog=true true/g' master.conf ;           
+           echo "model_id= ${model_id}" ;
+           echo "env_str= ${env_str}" ;
+           echo "current_dir= $(pwd)" ;
+           cd sim_ctl ;
+           sed -i -e 's/TIME_END=$(date +%s)/TIME_END=$(date +%s) ; touch ready; RUNTIME_sec=$(( TIME_END - TIME_START )); echo "The runtime is ${RUNTIME_sec} seconds."/g' sim_run.sh ;
+           cd .. ;
+           bash control_tsmp2.sh ;
+           echo "current_dir_ctl= $(pwd)" ;
+           cp ../run/sim_*/tsmp2.job . ;
+           cp ../run/sim_*/slm_multiprog_mapping.conf . ;
+           cd ../run/sim_${model_id_sim}_20170701 ;
+           echo "current_dir_run= $(pwd)" ;
+           sbatch tsmp2.job > run.jobid
+      #
+      # TO NOT RUN
+      - name: run_command
+        tag: build|!full+!build+!run
+        _: echo 'Run nothing'
+
+  # 5. Download data mode
+  #    data = it downloads data
+  #    nodata = it doesn't download data
+  #    If no download data mode is defined, it will download the data by default
+  #    To use the "nodata" mode, data must have been downloaded previously
+  #
+  - name: downloadData
+    parameter:
+      # TO DOWNLOAD DATA
+      # Downloads data and saves it on a folder outside the \outpath so it can be used for other jube-submissions
+      - name: download_command
+        tag: data
+        _: 
+           mkdir ${jube_benchmark_home}/download_data ;
+           cd ${jube_benchmark_home}/download_data ;
+           wget -x -l 8 -nH --cut-dirs=4 -e robots=off --recursive --no-parent --reject="index.html*" https://datapub.fz-juelich.de/slts/tsmp_testcases/data/tsmp2_eur11_wfe_iniforc/ ;
+      #
+      # TO NOT DOWNLOAD DATA, DATA is LINKED
+      - name: download_command
+        tag: nodata|(!data+!nodata)
+        _: echo 'Download nothing'
+
+  # 6. Comparison with reference case
+  #    eclm
+  - name: compareTsmp
+    parameter:
+      - name: compare_command
+        tag: (eclm+!parflow+!icon)|(!icon+!eclm+!parflow)
+        _: 
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           rm max.nc diff.nc
+
+      - name: compare_command
+        tag: eclm+parflow+!icon
+        _: 
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           rm max.nc diff.nc ;
+           
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           rm max.nc diff.nc
+
+      - name: compare_command
+        tag: eclm+!parflow+icon
+        _: 
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           rm max.nc diff.nc ;
+           
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+           rm max.nc diff.nc   
+
+      - name: compare_command
+        tag: eclm+parflow+icon
+        _: 
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           rm max.nc diff.nc ;
+           
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           rm max.nc diff.nc ;
+
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+           rm max.nc diff.nc
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# Section 2: Execution Steps
+# ----------------------------------------------------------------------------------------------------------------
+step:
+ # 0. Check if systemname is set
+  - name: input
+    use:
+      - systemInfo
+      - inputParam
+    do:
+      - echo "Do nothing"
+      
+ # 1. Build and Install
+  - name: build
+    depend: input 
+    use:
+     - systemInfo
+     - combinationTsmp
+     - execMode
+    do: ${build_command}
+     
+ # 2. Download data
+  - name: download
+    depend: build
+    use:  
+      - downloadData
+    do: ${download_command}
+
+ # 3. Run test
+  - name: execute
+    depend: download
+    use:  
+      - systemInfo
+      - inputParam
+      - combinationTsmp
+      - execMode
+      - finished_run
+    do:
+      - done_file: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/$done_run
+        _: ${run_command}
+      - echo "true" > success
+
+ # 4. Verify the results of the simulation
+  - name: verify
+    depend: execute
+    do:
+      - |
+        execute_step=$(cat execute/success)
+        if [[ "$execute_step" == "true" ]]; then
+          echo "true"
+        else
+          echo "false"
+        fi
+
+ # 5. Compare test with reference
+  - name: compare
+    tag: full|run
+    depend: execute
+    use:  
+      - auxcompare
+      - combinationTsmp
+      - compareTsmp
+      
+    do: ${compare_command}
+ 
+ 
+# -------------------------------------------------------------------------------------------------
+# Section 3: Analysis of Results
+# -------------------------------------------------------------------------------------------------
+patternset:
+
+  - name: runtime_pattern
+    pattern:
+      - name: runtime
+        type: string
+        _: 'runtime:\s+(\d*:[0-5]\d:[0-5]\d)\s+'
+
+      - name: runtime_sec
+        type: int
+        _: 'The runtime is $jube_pat_int'
+        
+        
+  - name: success_pattern
+    pattern:
+      - name: success
+        _: $jube_pat_wrd
+        
+  - name: jobid_pattern
+    pattern:
+      - name: jobid
+        type: int
+        _: $jube_pat_int
+        
+  - name: nodes_pattern
+    pattern:
+      - name: nodes
+        type: int      
+        _: '--nodes=$jube_pat_int'
+
+  - name: tasks_pattern
+    pattern:
+      - name: ntasks
+        type: int      
+        _: '--ntasks=$jube_pat_int'
+
+  - name: compare_pattern_eclm
+    pattern:
+      - name: comparison_eclm
+        tag: eclm|(!icon+!eclm+!parflow)
+        _: 'The eCLM comparison is $jube_pat_wrd'
+
+  - name: compare_pattern_parflow
+    pattern:        
+      - name: comparison_parflow
+        tag: parflow
+        _: 'The parflow comparison is $jube_pat_wrd'
+
+  - name: compare_pattern_icon
+    pattern:        
+      - name: comparison_icon
+        tag: icon
+        _: 'The icon comparison is $jube_pat_wrd'
+
+
+analyser:
+  - name: bench_info
+    analyse:
+      step: execute
+      tag: full|run
+      file:
+        - use: runtime_pattern
+          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u_sim_20170701000000_*.out
+        - use: jobid_pattern
+          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/run.jobid
+        - use: success_pattern
+          _: success
+        - use: nodes_pattern
+          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/tsmp2.job
+        - use: tasks_pattern
+          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/tsmp2.job
+        - use: compare_pattern_eclm
+          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out
+        - use: compare_pattern_parflow
+          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out
+        - use: compare_pattern_icon
+          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out
+          
+
+result:
+  use:
+    - bench_info
+
+  table:
+    - name: result_eclm
+      style: csv
+      tag: (eclm+!parflow+!icon)|(!eclm+!parflow+!icon)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "version", _: system_version}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - jobid
+        - nodes
+        - ntasks
+        - taskspernode
+        - threadspertask
+        - runtime_sec
+        - runtime
+        - success
+        - comparison_eclm
+
+    - name: result_eclm_parflow
+      style: csv
+      tag: (eclm+parflow+!icon)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "version", _: system_version}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - jobid
+        - nodes
+        - ntasks
+        - taskspernode
+        - threadspertask
+        - runtime_sec
+        - runtime
+        - success
+        - comparison_eclm
+        - comparison_parflow
+
+    - name: result_eclm_icon
+      style: csv
+      tag: (eclm+!parflow+icon)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "version", _: system_version}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - jobid
+        - nodes
+        - ntasks
+        - taskspernode
+        - threadspertask
+        - runtime_sec
+        - runtime
+        - success
+        - comparison_eclm
+        - comparison_icon
+
+    - name: result_eclm_parflow_icon
+      style: csv
+      tag: (eclm+parflow+icon)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "version", _: system_version}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - jobid
+        - nodes
+        - ntasks
+        - taskspernode
+        - threadspertask
+        - runtime_sec
+        - runtime
+        - success
+        - comparison_eclm
+        - comparison_icon
+        - comparison_parflow
