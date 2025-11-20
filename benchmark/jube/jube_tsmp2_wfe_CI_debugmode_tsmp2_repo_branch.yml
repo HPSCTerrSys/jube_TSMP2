@@ -29,13 +29,21 @@ outpath: /dev/null
 # Make auxiliary source/files available to the workflow
 # The locations can be relative to the jube file
 # .../benchmark/jube/jube_tsmp2_wfe_CI.yml
-fileset:
- - name: auxreference
-   copy: /p/project1/cslts/shared_data/CI_TSMP2/compare_ref_TSMP2_WFE_ideal/${model_id}/*
+fileset:        
  - name: auxcompare
    copy: ../../usecompare/*
 
 parameterset:
+  # 00. User specific information running the benchmark
+  #  MODIFY: 
+  #         branch_name: master, dev-name  # write the name of the branch you want to use from TSMP2
+  #         bin_storage:                   # write the path where to store binaries built
+  #                                        # binaries will be copied in ${bin_storage}/{branch_name}/${system_name}_${model_id}_${env_str}
+
+  - name: userInfo
+    parameter:
+      - {name: branch_name, _: master}
+      - {name: bin_storage, _: "/p/project1/cslts/shared_data/CI_TSMP2/bin"}
   # 0. System specific information running the benchmark
   #    Tags for each machine: jureca, juwels, jupiter, jusuf
   - name: systemInfo
@@ -65,7 +73,7 @@ parameterset:
       - {name: threadspertask, tag: jupiter, _: 288}
       - {name: threadspertask, tag: jusuf, _: 128}
 
-      
+
   # 1. File name to check run is finished   
   - name: finished_run
     parameter:
@@ -157,14 +165,16 @@ parameterset:
         tag: full|build|!full+!build+!run
         _: 
            git clone -b master https://github.com/HPSCTerrSys/TSMP2.git ;
-           wfe_dir=$(realpath TSMP2_workflow-engine) ;
            cd TSMP2 ;
            echo $(pwd) ;
-           git switch dev-jube ;
+           git switch ${branch_name} ;
            git branch -a ;
            echo "build_tsmp2.sh ${combination_str} --env ./env/${env_str}" ;
            bash build_tsmp2.sh ${combination_str} --env ./env/${env_str} ;
-           cp -r ./bin/${system_name}_${model_id} /p/project1/cslts/shared_data/CI_TSMP2/bin/${system_name}_${model_id}_${env_str}
+           mkdir -p ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str} ;
+           cp -r ./bin/${system_name}_${model_id}/* ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str}   
+
+#           cp -r ./bin/${system_name}_${model_id} /p/project1/cslts/shared_data/CI_TSMP2/bin/${system_name}_${model_id}_${env_str}
       #
       # TO NOT BUILD 
       # To save time when one build for that combination already exists
@@ -172,8 +182,8 @@ parameterset:
       - name: build_command
         tag: run
         _: 
-           mkdir -p TSMP2/bin ;
-           cp -r /p/project1/cslts/shared_data/CI_TSMP2/bin/${system_name}_${model_id}_${env_str} ./TSMP2/bin/${system_name}_${model_id}
+           mkdir -p TSMP2/bin/${system_name}_${model_id} ;
+           cp -r ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str}/* ./TSMP2/bin/${system_name}_${model_id}
       #
       # TO RUN 
       - name: run_command
@@ -242,47 +252,62 @@ parameterset:
   #    eclm
   - name: compareTsmp
     parameter:
+           
       - name: compare_command
         tag: (eclm+!parflow+!icon)|(!icon+!eclm+!parflow)
-        _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+        _:
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           rm max.nc diff.nc
+
+      - name: compare_command
+        tag: parflow+!eclm+!icon
+        _:
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           rm max.nc diff.nc
+
+      - name: compare_command
+        tag: icon+!eclm+!parflow
+        _:
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
            rm max.nc diff.nc
 
       - name: compare_command
         tag: eclm+parflow+!icon
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
            rm max.nc diff.nc ;
            
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc.nc > Errors_output_parflow.out ;
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc > Errors_output_parflow.out ;
            cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
            rm max.nc diff.nc
 
       - name: compare_command
         tag: eclm+!parflow+icon
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
            rm max.nc diff.nc ;
            
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
            cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
            rm max.nc diff.nc   
 
       - name: compare_command
         tag: eclm+parflow+icon
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
            rm max.nc diff.nc ;
            
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc.nc > Errors_output_parflow.out ;
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc > Errors_output_parflow.out ;
            cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
            rm max.nc diff.nc ;
 
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
            cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
            rm max.nc diff.nc
 
@@ -306,6 +331,7 @@ step:
      - systemInfo
      - combinationTsmp
      - execMode
+     - userInfo               
     do: ${build_command}
      
  # 2. Download data
