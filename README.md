@@ -2,14 +2,19 @@
 This `JUBE` file installs [TSMP2](https://github.com/HPSCTerrSys/TSMP2) and runs the test case from [TSMP2_workflow-engine](https://github.com/HPSCTerrSys/TSMP2_workflow-engine). The `JUBE` file also compare the results with a reference.
 
 ### For developing use
-You must explicitly change the name of the branch in Line 163 to your `TSMP2_dev-branch_name`. Example: 
+You must explicitly change the parameter `userInfo` and `bin_storage` in Lines 45-46:
 ```
-           git switch my_tsmp2_dev-branch ;
+  - name: userInfo
+    parameter:
+      - {name: branch_name, _: master}
+      - {name: bin_storage, _: "/p/project1/cslts/shared_data/CI_TSMP2/bin"}
 ```
-If not using any dev-branch, replace Line 163 to:
+For this example, the jube file is using the master-branch and the binaries of build will be saved in the cslts_project folder.
+The complete path to the saved binaries is:
 ```
-           git switch main ;
+${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str}
 ```
+
 
 ### How to use it
 If the working directory to the benchmark is:
@@ -44,7 +49,8 @@ For more details on how to run JUBE, have a look at the JUBE [documentation](htt
 ```
 jube continue ./outpath -r -e
 ```
-After step (3), jube will produce a results table. For instance:
+
+After step (3), JUBE will produce a results table. For instance:
 ```
 system,version,queue,account,variant,components,jobid,nodes,ntasks,taskspernode,threadspertask,runtime_sec,runtime,success,comparison_eclm
 jurecadc,2024.01,dc-cpu,slts,single,eCLM,14230309,1,128,128,128,85,00:01:25,true,SUCCESSFUL
@@ -55,7 +61,7 @@ jurecadc,2024.01,dc-cpu,slts,single,eCLM,14230309,1,128,128,128,85,00:01:25,true
 `system_name`: machine where the benchmark runs.
 
 `execution_mode`: allows to choose among `full` (build + run), `build` (only build), and `run` (only run). If no execution mode is defined, it will *only build*. To be able to use the `run` mode, the combination build must have been built previously. 
-                  The builts are saved here `/p/project1/cslts/shared_data/CI_TSMP2/bin/`. The built is saved as `<machine_components_environment>`, for instance `JURECADC_ICON-eCLM_jsc.2025.intel.psmpi`.
+                  The builts are saved here `${bin_storage}=/path_to_binaries/bin/`. The built is saved as `<machine_components_environment>`, for instance `JURECADC_ICON-eCLM_jsc.2025.intel.psmpi`.
 
 `download_data`: allows to choose between `data` (downloads data) and `nodata` (no data is downloaded). The data downloaded is the data needed to run the EUR-11 case. Data is available [here](https://datapub.fz-juelich.de/slts/tsmp_testcases/data/tsmp2_eur11_wfe_iniforc/). 
                  If no download data mode is defined, the data will not be downloaded. To use the `nodata` mode, data must have been downloaded previously, otherwise it the simulation run will fail.
@@ -88,17 +94,18 @@ jube -v run -r -e --tag juwels build icon eclm parflow nodata jsc.2025.intel.psm
 
 3) If only the system name is provided (e.g., `juwels`):
 ```
-jube -v run -r -e --tag juwels --outpath ./outpath jube_tsmp2_wfe.yml
+jube -v run -r -e --tag juwels --outpath ./outpath jube_filename.yml
 ```   
-It will use the default options on `juwels`: build, eclm, `jsc.2025.intel.psmpi`, and doesn't download data.
+It will use the default options on `juwels`: build, eclm, `jsc.2025.intel.psmpi`, and won't download data.
+
 
 ### Comparison of results
-Reference case was produced with jureca using the `jsc.2025.gnu.openmpi`. Reference results are here:
+Reference case was produced on `jureca` using the `jsc.2025.intel.psmpi`. Reference results are here:
 ```
 /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/
 ```
 
-Scripts used to compare the outputs from `eclm`, `parflow`, and `icon` use a *threshold of 1E-6* and are stored here:
+Scripts used to compare the outputs from `eclm`, `parflow`, and `icon` use a **threshold of 1E-8** and are stored here:
 ```
 working_dir/../../usecompare/
 ```
@@ -110,7 +117,7 @@ usecompare]$ tree
 ├── compare_nc_icon.sh
 └── compare_nc_parflow.sh
 ```
-Threshold can easily be modified on their respective scripts.
+Threshold can easily be modified on their respective scripts, as well as, the output variables to read.
 
 - eclm compares the following variables of the output `eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc`:
 ```
@@ -124,8 +131,12 @@ VARS=("pressure" "saturation" "evaptrans")
 
 - icon compares the following variables of the output `ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc`:
 ```
-VARS=("u" "v" "w" "temp" "theta_v" "pres" "qv" "qc" "qi" "qr" "qs" "clc" "shfl_s" "lhfl_s" "qv_s" "hpbl" "umfl_s" "vmfl_s" "t_so" "w_so" "w_so_ice" "smi" "tot_prec" "rain_gsp" "rain_con" "snow_gsp" "snow_con")
+VARS=("w" "theta_v" "qv" "shfl_s" "lhfl_s")
 ```
+There are three possible outputs of the comparison:
+- SUCCESSFUL: variables' differences are below the threshold.
+- FAILED: differences are greater than the threshold.
+- MISSING-NC-FILES: reference and/or test output files are missing.
 
 ### Directories
 - Results of the benchmark will be stored at `outpath`:
@@ -154,7 +165,7 @@ working_dir/outpath/0000##/000003_execute/work/TSMP2_workflow-engine/run
 working_dir/outpath/0000##/000005_compare/work/
 ```
 
-- Results table will be stored here:
+- Results table will be saved here:
 ```
 working_dir/outpath/0000##/result
 ```
