@@ -77,7 +77,7 @@ jurecadc,2024.01,dc-cpu,slts,single,eCLM,14230309,1,128,128,128,85,00:01:25,true
 | execution_mode   | full, build, run                                                            | build                                  | exclusive (only one can be selected)    |
 | download_data    | data, nodata                                                                | nodata                                 | exclusive (only one can be selected)    |
 | TSMP_components  | icon, eclm, parflow                                                         | eclm                                   | multiple choices allowed                |
-| environment      | jsc.2025.intel.psmpi  <br> jsc.2025.gnu.openmpi  <br> jsc.2024.intel.psmpi <br> jsc.2023.intel.psmpi <br> default.2025.env <br> ubuntu.gnu.openmpi <br> uni-bonn.gnu.openmpi | jsc.2025.intel.psmpi       | exclusive (only one can be selected)     |
+| environment      | jsc.2025.intel.psmpi  <br> jsc.2025.gnu.openmpi  <br> jsc.2025.gnu.psmpi  <br> jsc.2024.intel.psmpi <br> jsc.2023.intel.psmpi <br> default.2025.env <br> ubuntu.gnu.openmpi <br> uni-bonn.gnu.openmpi | jsc.2025.intel.psmpi       | exclusive (only one can be selected)     |
 
 
 ### Examples of jube commands
@@ -102,7 +102,7 @@ It will use the default options on `juwels`: build, eclm, `jsc.2025.intel.psmpi`
 ### Comparison of results
 Reference case was produced on `jureca` using the `jsc.2025.intel.psmpi`. Reference results are here:
 ```
-/p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECA/simres/${model_id_sim}_20170701/
+/p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/
 ```
 
 Scripts used to compare the outputs from `eclm`, `parflow`, and `icon` use a **threshold of 1E-8** and are stored here:
