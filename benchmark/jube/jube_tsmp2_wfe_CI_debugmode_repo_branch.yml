@@ -4,12 +4,16 @@
 #
 # -------------------------------------------------------------------------------------------------
 # TO DOs:
+#   - If all machines and environments have references then replace ${ref_system} and ${ref_env} by ${system_name} and ${env_str}
 #   - Add ParflowGPU
 #   - Test with other machines (only JURECA checked)
 #   - Compute ntasks for each model_id (or retrieve)
 #   - Compute taskspernode and threadspertask for each model_id --> add with platform.xml (internal sbatch)
 #   - Add Ideal scaling case (Stefan Poll) https://github.com/HPSCTerrSys/simexp_ideal_scalhom_icon-eclm-parflow_wfe-case
-#   - Add comparison results?     
+#   - Add comparison results
+#   - Generalize script to be able to use it for different cases (different repos)
+#   - Generalize the userInfo    
+#   - Talk to Stefan Poll to modify the WFE so it's general for each test case and less changes on how to submit batch file
 #
 # -------------------------------------------------------------------------------------------------
 # Section 0: Preamble
@@ -36,16 +40,26 @@ fileset:
 parameterset:
   # 00. User specific information running the benchmark
   #  MODIFY: 
-  #         branch_name: master, dev-name  # write the name of the branch you want to use from TSMP2
-  #         bin_storage:                   # write the path where to store binaries built
-  #                                        # binaries will be copied in ${bin_storage}/{branch_name}/${system_name}_${model_id}_${env_str}
-
+  #         branch_name: master, dev-name  # Write the name of the branch you want to use from TSMP2
+  #         bin_storage:                   # Write the path where to store binaries built
+  #                                        # Binaries will be copied in ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str}
+  #         ref_storage:                   # Reference case will be retrieved from ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}
+  #         ref_system: JURECADC, JUPITER  # Write the name of the system from the reference case (Note: JURECADC has all reference cases)
+  #         ref_branch: master             # Write the name of the reference branch (Note: master has all reference cases)
+  #         ref_env: jsc.2025.gnu.openmpi  # Write the environment from the reference case (gnu.openmpi and gnu.psmpi produce same results, but not intel.psmpi)
+  #                                        # /p/project1/cslts/shared_data/CI_TSMP2/out_ref/JURECADC_jsc.2025.gnu.openmpi/
+  #                                          ${ref_storage}/${ref_system}_${ref_env}
+  #                                        # TO DO if all machines and environments have references then replace ref_system and ref_env by ${system_name} and ${env_str}
   - name: userInfo
     parameter:
       - {name: branch_name, _: master}
-      - {name: bin_storage, _: "/p/project1/cslts/shared_data/CI_TSMP2/bin"}
+      - {name: ref_branch, _: master}
+      - {name: ref_env, _: $env_str}                  # jsc.2025.gnu.openmpi, $env_str
+      - {name: ref_system, _: JURECADC}               # JURECADC, $system_name
+      - {name: ref_system, tag: jupiter,_: JUPITER}   # JURECADC, $system_name
+
   # 0. System specific information running the benchmark
-  #    Tags for each machine: jureca, juwels, jupiter, jusuf
+  #    Tags for each machine: jurecadc, juwels, jupiter, jusuf
   - name: systemInfo
     parameter:
       - name: system_name_hardcode
@@ -56,28 +70,65 @@ parameterset:
       - name: system_version
         mode: shell
         _: "echo 2024.01"
-      - {name: system_name, tag: jureca, _: JURECADC}
+ 
+      - {name: mode_exec, tag: full, _: full}
+      - {name: mode_exec, tag: build, _: build}
+      - {name: mode_exec, tag: run, _: run} 
+        
+      - {name: system_name, tag: jurecadc, _: JURECADC}
       - {name: system_name, tag: juwels, _: JUWELS}
       - {name: system_name, tag: jupiter, _: JUPITER}
       - {name: system_name, tag: jusuf, _: JUSUF}
 
       - {name: taskspernode, tag: gpu, _: 4}
-      - {name: taskspernode, tag: jureca, _: 128}
+      - {name: taskspernode, tag: jurecadc, _: 128}
       - {name: taskspernode, tag: juwels, _: 48}
       - {name: taskspernode, tag: jupiter, _: 288}
       - {name: taskspernode, tag: jusuf, _: 128}
       
       - {name: threadspertask, tag: gpu, _: 4}
-      - {name: threadspertask, tag: jureca, _: 128}
+      - {name: threadspertask, tag: jurecadc, _: 128}
       - {name: threadspertask, tag: juwels, _: 48}
       - {name: threadspertask, tag: jupiter, _: 288}
       - {name: threadspertask, tag: jusuf, _: 128}
+      
+      - {name: pfl_nodes, tag: gpu, _: 1}
+      - {name: pfl_nodes, tag: jurecadc|juwels|jusuf, _: 2}
+      - {name: pfl_nodes, tag: jupiter, _: 1}
+ 
+      - {name: clm_nodes, tag: jurecadc|juwels|jusuf, _: 1}
+      - {name: clm_nodes, tag: jupiter, _: 1}  
 
+      - {name: ico_nodes, tag: jurecadc|juwels|jusuf, _: 3}
+      - {name: ico_nodes, tag: jupiter, _: 1}
 
+      - {name: root_storage, tag: jurecadc|jusuf|juwels, _: "/p/project1/cslts/shared_data/CI_TSMP2"}
+      - {name: root_storage, tag: jupiter, _: "/e/project1/eessx/shared_data/CI_TSMP2"}
+
+      - {name: bin_storage, _: "${root_storage}/bin"}      
+      # - {name: bin_storage, tag: jurecadc|jusuf|juwels, _: "/p/project1/cslts/shared_data/CI_TSMP2/bin"}
+      # - {name: bin_storage, tag: jupiter, _: "/e/project1/eessx/shared_data/CI_TSMP2/bin"}
+
+      - {name: ref_storage, _: "${root_storage}/out_ref"}      
+      # - {name: ref_storage, tag: jurecadc|jusuf|juwels, _: "/p/project1/cslts/shared_data/CI_TSMP2/out_ref"}
+      # - {name: ref_storage, tag: jupiter, _: "/e/project1/eessx/shared_data/CI_TSMP2/out_ref"}
+
+      - {name: build_env_path, _: "${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}"}
+      - {name: compare_path, _: "${jube_benchmark_rundir}/000006_compare/work/"} 
+      
   # 1. File name to check run is finished   
+  # - name: finished_run
+    # parameter:
+      # - {name: done_run, _: ready}
   - name: finished_run
     parameter:
-      - {name: done_run, _: ready}
+    - {name: done_run, tag: icon+!eclm+!parflow+!parflowgpu, _: eur-11u_restart_ATMO_20170702T000000Z.nc}
+    - {name: done_run, tag: eclm+!icon+!parflow+!parflowgpu, _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
+    - {name: done_run, tag: parflow|parflowgpu+!icon+!eclm, _: eur-11u.out.00001.nc}
+    - {name: done_run, tag: icon+eclm+!parflow+!parflowgpu, _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
+    - {name: done_run, tag: eclm+parflow|parflowgpu+!icon, _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
+    - {name: done_run, tag: icon+eclm+parflow|parflowgpu, _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
+    - {name: done_run, tag: "!icon+!eclm+!parflow+!parflowgpu", _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
  
  
   # 2. TSMP2-components for the build
@@ -92,39 +143,52 @@ parameterset:
     parameter: 
   #  
   # 2.a For the build command: TO DO add parflowGPU
-    - {name: combination_str, tag: icon+!eclm+!parflow, _: --icon}
-    - {name: combination_str, tag: eclm+!icon+!parflow, _: --eclm}
-    - {name: combination_str, tag: parflow+!icon+!eclm, _: --parflow}
-    - {name: combination_str, tag: icon+eclm+!parflow, _: --icon --eclm}
-    - {name: combination_str, tag: eclm+parflow+!icon, _: --parflow --eclm}
-    - {name: combination_str, tag: icon+eclm+parflow, _: --icon --eclm --parflow}
-    - {name: combination_str, tag: "!icon+!eclm+!parflow", _: --eclm}
+    - {name: combination_str, tag: icon+!eclm+!parflow+!parflowgpu, _: --icon}
+    - {name: combination_str, tag: eclm+!icon+!parflow+!parflowgpu, _: --eclm}
+    - {name: combination_str, tag: parflow+!icon+!eclm+!parflowgpu, _: --parflow}
+    - {name: combination_str, tag: icon+eclm+!parflow+!parflowgpu, _: --icon --eclm}
+    - {name: combination_str, tag: eclm+parflow+!icon+!parflowgpu, _: --parflow --eclm}
+    - {name: combination_str, tag: icon+eclm+parflow+!parflowgpu, _: --icon --eclm --parflow}
+    - {name: combination_str, tag: "!icon+!eclm+!parflow+!parflowgpu", _: --eclm}
+    - {name: combination_str, tag: parflowgpu+!icon+!eclm+!parflow, _: --parflowGPU}
+    - {name: combination_str, tag: parflowgpu+eclm+!icon+!parflow, _: --eclm --parflowGPU}
+    - {name: combination_str, tag: parflowgpu+icon+eclm+!parflow, _: --icon --eclm --parflowGPU}
   #
     # 2.b Model ID for build:
-    - {name: model_id, tag: icon+!eclm+!parflow, _: ICON}
-    - {name: model_id, tag: eclm+!icon+!parflow, _: eCLM}
-    - {name: model_id, tag: parflow+!icon+!eclm, _: ParFlow}
-    - {name: model_id, tag: icon+eclm+!parflow, _: ICON-eCLM}
-    - {name: model_id, tag: eclm+parflow+!icon, _: eCLM-ParFlow}
-    - {name: model_id, tag: icon+eclm+parflow, _: ICON-eCLM-ParFlow}
-    - {name: model_id, tag: "!icon+!eclm+!parflow", _: eCLM}
+    - {name: model_id, tag: icon+!eclm+!parflow+!parflowgpu, _: ICON}
+    - {name: model_id, tag: eclm+!icon+!parflow+!parflowgpu, _: eCLM}
+    - {name: model_id, tag: parflow+!icon+!eclm+!parflowgpu, _: ParFlow}
+    - {name: model_id, tag: icon+eclm+!parflow+!parflowgpu, _: ICON-eCLM}
+    - {name: model_id, tag: eclm+parflow+!icon+!parflowgpu, _: eCLM-ParFlow}
+    - {name: model_id, tag: icon+eclm+parflow+!parflowgpu, _: ICON-eCLM-ParFlow}
+    - {name: model_id, tag: "!icon+!eclm+!parflow+!parflowgpu", _: eCLM}
+    - {name: model_id, tag: parflowgpu+!icon+!eclm+!parflow, _: ParFlowGPU}
+    - {name: model_id, tag: parflowgpu+eclm+!icon+!parflow, _: eCLM-ParFlowGPU}
+    - {name: model_id, tag: parflowgpu+icon+eclm+!parflow, _: ICON-eCLM-ParFlowGPU}
   #  
     # 2.b Model ID for running sim:
-    - {name: model_id_sim, tag: icon+!eclm+!parflow, _: icon}
-    - {name: model_id_sim, tag: eclm+!icon+!parflow, _: eclm}
-    - {name: model_id_sim, tag: parflow+!icon+!eclm, _: parflow}
-    - {name: model_id_sim, tag: icon+eclm+!parflow, _: iconeclm}
-    - {name: model_id_sim, tag: eclm+parflow+!icon, _: eclmparflow}
-    - {name: model_id_sim, tag: icon+eclm+parflow, _: iconeclmparflow}
-    - {name: model_id_sim, tag: "!icon+!eclm+!parflow", _: eclm}  
-    
+    - {name: model_id_sim, tag: icon+!eclm+!parflow+!parflowgpu, _: icon}
+    - {name: model_id_sim, tag: eclm+!icon+!parflow+!parflowgpu, _: eclm}
+    - {name: model_id_sim, tag: parflow+!icon+!eclm+!parflowgpu, _: parflow}
+    - {name: model_id_sim, tag: icon+eclm+!parflow+!parflowgpu, _: iconeclm}
+    - {name: model_id_sim, tag: eclm+parflow+!icon+!parflowgpu, _: eclmparflow}
+    - {name: model_id_sim, tag: icon+eclm+parflow+!parflowgpu, _: iconeclmparflow}
+    - {name: model_id_sim, tag: "!icon+!eclm+!parflow+!parflowgpu", _: eclm}  
+    - {name: model_id_sim, tag: parflowgpu+!icon+!eclm+!parflow, _: parflowgpu}
+    - {name: model_id_sim, tag: parflowgpu+eclm+!icon+!parflow, _: eclmparflowgpu}
+    - {name: model_id_sim, tag: parflowgpu+icon+eclm+!parflow, _: iconeclmparflowgpu}
+  #
   # 2.c Environment:
-    - {name: env_str, tag: jsc.2025.intel.psmpi, _: jsc.2025.intel.psmpi}
+    - {name: env_str, _: jsc.2025.intel.psmpi}                                          
+    - {name: env_str, tag: jsc.2026.nvhpc.openmpi, _: jsc.2026.nvhpc.openmpi}
+    - {name: env_str, tag: jsc.2026.gnu.openmpi, _: jsc.2026.gnu.openmpi}
     - {name: env_str, tag: jsc.2025.gnu.openmpi, _: jsc.2025.gnu.openmpi}
+    - {name: env_str, tag: jsc.2025.gnu.psmpi, _: jsc.2025.gnu.psmpi}
+    - {name: env_str, tag: jsc.2025.intel.psmpi, _: jsc.2025.intel.psmpi}
     - {name: env_str, tag: jsc.2024.intel.psmpi, _: jsc.2024.intel.psmpi}
     - {name: env_str, tag: jsc.2023.intel.psmpi, _: jsc.2023.intel.psmpi}
-    - {name: env_str, tag: default.2025.env, _: jsc.2025.intel.psmpi}
-    - {name: env_str, tag: "!jsc.2025.intel.psmpi+!jsc.2025.gnu.openmpi+!jsc.2024.intel.psmpi+!jsc.2023.intel.psmpi+!default.2025.env", _: jsc.2025.intel.psmpi}
+    - {name: env_str, tag: default.2025.env, _: jsc.2025.gnu.openmpi}
+    #- {name: env_str, tag: "!jsc.2025.intel.psmpi+!jsc.2025.gnu.openmpi+!jsc.2025.gnu.psmpi+!jsc.2024.intel.psmpi+!jsc.2023.intel.psmpi+!default.2025.env+!jsc.2026.gnu.openmpi+!jsc.2026.nvhpc.openmpi", _: jsc.2025.intel.psmpi}
 
 
   # 3. Collect the input parameters which are specified either through:
@@ -134,16 +198,16 @@ parameterset:
     parameter: 
 
     # Bench queue: TO DO add GPU queues 
-    - {name: bench_queue, tag: jureca, _: dc-cpu}
+    - {name: bench_queue, tag: jurecadc, _: dc-cpu}
     - {name: bench_queue, tag: juwels, _: batch}
     - {name: bench_queue, tag: jusuf, _: batch}
-    - {name: bench_queue, tag: jupiter, _: jureap}
+    - {name: bench_queue, tag: jupiter, _: booster}
 
     # Change account     
-    - {name: bench_account, tag: jureca, _: slts}
+    - {name: bench_account, tag: jurecadc, _: slts}
     - {name: bench_account, tag: juwels, _: slts}
-    - {name: bench_account, tag: juwels, _: slts}    
-    - {name: bench_account, tag: jupiter, _: jureap30}    
+    - {name: bench_account, tag: jusuf, _: slts}
+    - {name: bench_account, tag: jupiter, _: eessx}
     
     # Define parameter for the number of nodes
     - {name: variant, tag: single, _: single}
@@ -164,16 +228,17 @@ parameterset:
       - name: build_command
         tag: full|build|!full+!build+!run
         _: 
-           git clone -b master https://github.com/HPSCTerrSys/TSMP2.git ;
+           git clone -b ${branch_name} https://github.com/HPSCTerrSys/TSMP2.git ;
            cd TSMP2 ;
            echo $(pwd) ;
-           git switch ${branch_name} ;
            git branch -a ;
+           echo $(pwd) ;
+           ml ;
            echo "build_tsmp2.sh ${combination_str} --env ./env/${env_str}" ;
            bash build_tsmp2.sh ${combination_str} --env ./env/${env_str} ;
-           mkdir -p ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str} ;
-           cp -r ./bin/${system_name}_${model_id}/* ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str}   
-
+           ml ;
+#           mkdir -p ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str} ;
+#           cp -r ./bin/${system_name}_${model_id}/* ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str}
 #           cp -r ./bin/${system_name}_${model_id} /p/project1/cslts/shared_data/CI_TSMP2/bin/${system_name}_${model_id}_${env_str}
       #
       # TO NOT BUILD 
@@ -187,31 +252,35 @@ parameterset:
       #
       # TO RUN 
       - name: run_command
-        tag: full|run
         _: 
            git clone -b master https://github.com/HPSCTerrSys/TSMP2_workflow-engine.git ;
            wfe_dir=$(realpath TSMP2_workflow-engine) ;
            mkdir -p TSMP2_workflow-engine/dta/forcing/eclm ;
            mkdir -p TSMP2_workflow-engine/dta/forcing/icon/latbc ;
-           ln -sf ${jube_benchmark_home}/download_data/forcing/eclm/forcing TSMP2_workflow-engine/dta/forcing/eclm/forcing ;
-           ln -sf ${jube_benchmark_home}/download_data/forcing/icon/latbc/201707 TSMP2_workflow-engine/dta/forcing/icon/latbc/201707 ;
-           ln -sf ${jube_benchmark_home}/download_data/restart/20170630 TSMP2_workflow-engine/dta/restart/20170630 ;
+           ln -sf ${root_storage}/download_data/forcing/eclm/forcing TSMP2_workflow-engine/dta/forcing/eclm/forcing ;
+           ln -sf ${root_storage}/download_data/forcing/icon/latbc/201707 TSMP2_workflow-engine/dta/forcing/icon/latbc/201707 ;
+           ln -sf ${root_storage}/download_data/restart/20170630 TSMP2_workflow-engine/dta/restart/20170630 ;
            cd ${wfe_dir} ;
            git submodule update --init ;
            cd ${wfe_dir}/ctl ;
            echo "current_dir= $(pwd)" ;
            sed -i -e 's/MODEL_ID=ICON-eCLM-ParFlow/MODEL_ID=${model_id}/g' master.conf ;
            sed -i -e 's/lsim=( true true true )/lsim=( true true false )/g' master.conf ;
-           sed -i -e 's/debugmode=false/debugmode=true/g' master.conf ;           
-           sed -i -e 's|tsmp2_dir=$TSMP2_DIR|tsmp2_dir=\"${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine\"|g' master.conf ;
+           sed -i -e 's/sim_wallclock=00:25:00/sim_wallclock=00:45:00/g' master.conf ;
+           sed -i -e 's/debugmode=false/debugmode=true/g' master.conf ;
+           sed -i -e 's/account=""/account="${bench_account}"/g' master.conf ;
+           sed -i -e 's/ico_node=3/ico_node=${ico_nodes}/g' master.conf ;
+           sed -i -e 's/clm_node=1/clm_node=${clm_nodes}/g' master.conf ;
+           sed -i -e 's/pfl_node=2/pfl_node=${pfl_nodes}/g' master.conf ;
+           sed -i -e 's|tsmp2_dir=$TSMP2_DIR|tsmp2_dir=\"${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine\"|g' master.conf ;
            sed -i -e 's|tsmp2_install_dir=""|tsmp2_install_dir=\"${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}\"|g' master.conf ;
-           sed -i -e 's|tsmp2_env=""|tsmp2_env=\"${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}\"|g' master.conf ;    
-           sed -i -e 's/joblog=true/joblog=true true/g' master.conf ;           
+           sed -i -e 's|tsmp2_env=""|tsmp2_env=\"${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}\"|g' master.conf ;
+           sed -i -e 's/EXP_ID="eur-12-iic"/EXP_ID="eur-11u"/g' master.conf ;
            echo "model_id= ${model_id}" ;
            echo "env_str= ${env_str}" ;
            echo "current_dir= $(pwd)" ;
            cd sim_ctl ;
-           sed -i -e 's/TIME_END=$(date +%s)/TIME_END=$(date +%s) ; touch ready; RUNTIME_sec=$(( TIME_END - TIME_START )); echo "The runtime is ${RUNTIME_sec} seconds."/g' sim_run.sh ;
+           sed -i -e 's/TIME_END=$(date +%s)/TIME_END=$(date +%s) ; touch ready; RUNTIME_sec=$(( TIME_END - TIME_START )); echo "The runtime is ${RUNTIME_sec} seconds."; ml ncview ; ncdump -h ${done_run}/g' sim_run.sh ;
            cd .. ;
            bash control_tsmp2.sh ;
            echo "current_dir_ctl= $(pwd)" ;
@@ -219,12 +288,14 @@ parameterset:
            cp ../run/sim_*/slm_multiprog_mapping.conf . ;
            cd ../run/sim_${model_id_sim}_20170701 ;
            echo "current_dir_run= $(pwd)" ;
-           sbatch tsmp2.job > run.jobid
+           sbatch tsmp2.job > run.jobid 
+           
+
       #
       # TO NOT RUN
-      - name: run_command
-        tag: build|!full+!build+!run
-        _: echo 'Run nothing'
+      # - name: run_command
+        # tag: build|!full+!build+!run
+        # _: echo 'Run nothing'
 
   # 5. Download data mode
   #    data = it downloads data
@@ -239,8 +310,8 @@ parameterset:
       - name: download_command
         tag: data
         _: 
-           mkdir ${jube_benchmark_home}/download_data ;
-           cd ${jube_benchmark_home}/download_data ;
+           mkdir -p ${root_storage}/download_data ;
+           cd ${root_storage}/download_data ;
            wget -x -l 8 -nH --cut-dirs=4 -e robots=off --recursive --no-parent --reject="index.html*" https://datapub.fz-juelich.de/slts/tsmp_testcases/data/tsmp2_eur11_wfe_iniforc/ ;
       #
       # TO NOT DOWNLOAD DATA, DATA is LINKED
@@ -254,62 +325,109 @@ parameterset:
     parameter:
            
       - name: compare_command
-        tag: (eclm+!parflow+!icon)|(!icon+!eclm+!parflow)
+        tag: (eclm+!parflow+!icon+!parflowgpu)|(!icon+!eclm+!parflow+!parflowgpu)
         _:
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
-           rm max.nc diff.nc
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
 
       - name: compare_command
-        tag: parflow+!eclm+!icon
+        tag: parflow+!parflowgpu+!eclm+!icon
         _:
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc > Errors_output_parflow.out ;
-           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
-           rm max.nc diff.nc
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+
 
       - name: compare_command
-        tag: icon+!eclm+!parflow
+        tag: parflowgpu+!parflow+!eclm+!icon
         _:
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
-           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
-           rm max.nc diff.nc
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"           
 
       - name: compare_command
-        tag: eclm+parflow+!icon
-        _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
-           rm max.nc diff.nc ;
+        tag: icon+!eclm+!parflow+!parflowgpu
+        _:
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
            
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc > Errors_output_parflow.out ;
-           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
-           rm max.nc diff.nc
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
 
       - name: compare_command
-        tag: eclm+!parflow+icon
+        tag: eclm+parflow+!parflowgpu+!icon
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
-           rm max.nc diff.nc ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
            
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
-           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
-           rm max.nc diff.nc   
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
 
       - name: compare_command
-        tag: eclm+parflow+icon
+        tag: eclm+parflowgpu+!parflow+!icon
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/eclm/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
-           rm max.nc diff.nc ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
            
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/parflow/eur-11u.out.00001.nc > Errors_output_parflow.out ;
-           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
-           rm max.nc diff.nc ;
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
 
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc /p/project1/cslts/shared_data/rcmod_TSMP2_WFE_reference_CORDEX_JURECADC/simres/${model_id_sim}_20170701/out/icon/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
-           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
-           rm max.nc diff.nc
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+
+      - name: compare_command
+        tag: eclm+icon+!parflow+!parflowgpu
+        _: 
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+
+      - name: compare_command
+        tag: eclm+parflow+icon+!parflowgpu
+        _: 
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/";
+
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+
+
+      - name: compare_command
+        tag: eclm+parflowgpu+icon+!parflow
+        _: 
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/";
+
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+
+
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -331,32 +449,70 @@ step:
      - systemInfo
      - combinationTsmp
      - execMode
-     - userInfo               
+     - userInfo
     do: ${build_command}
-     
- # 2. Download data
-  - name: download
+
+ # 2. Verify build 
+  - name: verifybuild  
     depend: build
+    use:
+     - systemInfo
+     - userInfo
+     - combinationTsmp
+    do:
+      - |
+        echo "build_env_path = $build_env_path "
+        echo "bin_storage = ${root_storage}/bin "
+        if [[ -f $build_env_path ]]; then
+          echo "true" > build_available
+          mkdir -p ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str} ;
+          cp -r ./build/TSMP2/bin/${system_name}_${model_id}/* ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str}
+        else
+          echo "Build failed"
+          echo "false" > build_available
+        fi
+     
+ # 3. Download data
+  - name: download
+    depend: verifybuild
     use:  
       - downloadData
-    do: ${download_command}
-
- # 3. Run test
+      - systemInfo
+    do:
+      - |
+        if [[ -f $build_env_path ]]; then
+          ${download_command}
+        else
+          echo "Build failed"
+        fi
+        
+ # 4. Run test
   - name: execute
+    tag: full|run  
     depend: download
-    use:  
+    use:
       - systemInfo
       - inputParam
       - combinationTsmp
       - execMode
       - finished_run
     do:
-      - done_file: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/$done_run
-        _: ${run_command}
-      - echo "true" > success
-
- # 4. Verify the results of the simulation
+      - done_file: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/${done_run}
+        _: |
+          if [[ -f $build_env_path ]]; then
+            ${run_command}
+            echo "true" > success
+          else
+            echo "Build failed"
+            mkdir -p ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701
+            echo "Mock done file" > ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/${done_run}
+            echo "false" > success
+          fi
+          cp ${jube_benchmark_rundir}/000002_verifybuild/work/build_available ${jube_benchmark_rundir}/000004_execute/work/
+        
+ # 5. Verify the results of the simulation
   - name: verify
+    tag: full|run  
     depend: execute
     do:
       - |
@@ -367,7 +523,7 @@ step:
           echo "false"
         fi
 
- # 5. Compare test with reference
+ # 6. Compare test with reference
   - name: compare
     tag: full|run
     depend: execute
@@ -375,14 +531,30 @@ step:
       - auxcompare
       - combinationTsmp
       - compareTsmp
+      - systemInfo
       
-    do: ${compare_command}
- 
+    do: 
+      - |
+        if [[ -f $build_env_path ]]; then
+          ${compare_command}
+        else  
+          echo "Build failed"
+        fi
  
 # -------------------------------------------------------------------------------------------------
 # Section 3: Analysis of Results
 # -------------------------------------------------------------------------------------------------
 patternset:
+  - name: build_pattern
+    pattern:
+      - name: available_build
+        _: $jube_pat_wrd
+
+  - name: done_pattern
+    pattern:
+      - name: date_build
+        type: string
+        _: '(\d{4}-\d{2}-\d{2}\s+(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d)'
 
   - name: runtime_pattern
     pattern:
@@ -393,7 +565,48 @@ patternset:
       - name: runtime_sec
         type: int
         _: 'The runtime is $jube_pat_int'
-        
+ 
+  - name: time_pattern_eclm
+    pattern:
+      - name: init_eclm
+        type: string
+        _: 'CPL:INIT"\s+-\s+\d+\s+-\s+([0-9.]+)'
+
+      - name: run_loop_eclm
+        type: string
+        _: 'CPL:RUN_LOOP"\s+-\s+\d+\s+-\s+([0-9.]+)'
+
+  - name: time_pattern_parflow
+    pattern:
+      - name: solver_pfl
+        type: string
+        _: 'Solver,([\d.eE+-]+),'
+
+      - name: richards_exclude_pfl
+        type: string
+        _: 'Richards Exclude 1st Time Step,([\d.eE+-]+),'
+ 
+      - name: kinsol_pfl
+        type: string
+        _: 'KINSol,([\d.eE+-]+),'
+
+      - name: total_runtime_pfl
+        type: string
+        _: 'Total Runtime,([\d.eE+-]+),' 
+
+  - name: time_pattern_icon
+    pattern:
+      - name: total_ave_icon
+        type: float
+        _: 'total\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+([\d.]+)'
+
+      - name: physics_ave_icon
+        type: float
+        _: 'physics\s+\d+\s+\S+\s+\[\d+\]\s+\S+\s+\S+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+([0-9.]+)'
+
+      - name: modelinit_ave_icon
+        type: float
+        _: 'model_init\s+[1-9][0-9][0-9]*\s+\S+\s+\[\d+\]\s+\S+\s+\S+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+([0-9.]+)'
         
   - name: success_pattern
     pattern:
@@ -409,74 +622,133 @@ patternset:
   - name: nodes_pattern
     pattern:
       - name: nodes
-        type: int      
+        type: int
         _: '--nodes=$jube_pat_int'
 
   - name: tasks_pattern
     pattern:
       - name: ntasks
-        type: int      
+        type: int
         _: '--ntasks=$jube_pat_int'
 
   - name: compare_pattern_eclm
     pattern:
       - name: comparison_eclm
-        tag: eclm|(!icon+!eclm+!parflow)
+        tag: eclm|(!icon+!eclm+!parflow+!parflowgpu)
         _: 'The eCLM comparison is $jube_pat_wrd'
 
   - name: compare_pattern_parflow
-    pattern:        
+    pattern:
       - name: comparison_parflow
-        tag: parflow
+        tag: parflow|parflowgpu
         _: 'The parflow comparison is $jube_pat_wrd'
-
+          
   - name: compare_pattern_icon
-    pattern:        
+    pattern:
       - name: comparison_icon
         tag: icon
         _: 'The icon comparison is $jube_pat_wrd'
 
+  - name: compare_sum
+    pattern:
+      - name: comparison_eclm_value
+        _: 'eclm $jube_pat_int'
+        default: 0 
+
+      - name: comparison_parflow_value
+        _: 'parflow $jube_pat_int'
+        default: 0 
+ 
+      - name: comparison_icon_value
+        _: 'icon $jube_pat_int'
+        default: 0 
+ 
+      - name: comp_sum_failed
+        type: int
+        mode: python
+        _: "$comparison_eclm_value + $comparison_parflow_value + $comparison_icon_value"
+        
 
 analyser:
+
+  - name: build_info
+    analyse:
+      tag: build|!full+!build+!run
+      step: build
+      file:
+        - use: build_pattern
+          _: ${jube_benchmark_rundir}/000002_verifybuild/work/build_available
+        - use: done_pattern
+          _: ${jube_benchmark_rundir}/000001_build/done
+
   - name: bench_info
     analyse:
-      step: execute
       tag: full|run
+      step: execute
       file:
+        - use: build_pattern
+          _: ${jube_benchmark_rundir}/000004_execute/work/build_available
         - use: runtime_pattern
-          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u_sim_20170701000000_*.out
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u_sim_20170701000000_*.out
         - use: jobid_pattern
-          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/run.jobid
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/run.jobid
         - use: success_pattern
           _: success
         - use: nodes_pattern
-          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/tsmp2.job
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/tsmp2.job
         - use: tasks_pattern
-          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/tsmp2.job
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/tsmp2.job
         - use: compare_pattern_eclm
-          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out
         - use: compare_pattern_parflow
-          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out
         - use: compare_pattern_icon
-          _: ${jube_benchmark_rundir}/000003_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out
-          
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out
+        - use: time_pattern_eclm
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/timing/model_timing.0*
+        - use: time_pattern_parflow
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.timing.csv
+        - use: time_pattern_icon
+          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u_sim_20170701000000_*.err
+        - use: compare_sum
+          _: ${jube_benchmark_rundir}/000006_compare/work/comparison_sum.out
+
 
 result:
   use:
     - bench_info
+    - build_info
 
   table:
-    - name: result_eclm
+
+    - name: result_build
       style: csv
-      tag: (eclm+!parflow+!icon)|(!eclm+!parflow+!icon)
+      tag: build|!full+!build+!run
       sort: nodes, taskspernode
       column:
         - { title: "system", _: system_name_hardcode}
-        - { title: "version", _: system_version}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
         - { title: "queue", _: bench_queue}
         - { title: "account", _: bench_account}
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
+        - available_build
+        - date_build
+
+    - name: result_eclm
+      style: csv
+      tag: (full|run)+(eclm+!parflow+!icon+!parflowgpu)|(!eclm+!parflow+!icon+!parflowgpu)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - available_build
         - jobid
         - nodes
         - ntasks
@@ -484,20 +756,108 @@ result:
         - threadspertask
         - runtime_sec
         - runtime
+        - init_eclm
+        - run_loop_eclm
         - success
         - comparison_eclm
+        - comp_sum_failed
+
+    - name: result_parflow
+      style: csv
+      tag: (full|run)+(parflow+!parflowgpu+!eclm+!icon)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - available_build
+        - jobid
+        - nodes
+        - ntasks
+        - taskspernode
+        - threadspertask
+        - runtime_sec
+        - runtime
+        - solver_pfl
+        - richards_exclude_pfl
+        - kinsol_pfl
+        - total_runtime_pfl
+        - success
+        - comparison_parflow
+        - comp_sum_failed
+
+    - name: result_parflowgpu
+      style: csv
+      tag: (full|run)+(parflowgpu+!parflow+!eclm+!icon)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - available_build
+        - jobid
+        - nodes
+        - ntasks
+        - taskspernode
+        - threadspertask
+        - runtime_sec
+        - runtime
+        - solver_pfl
+        - richards_exclude_pfl
+        - kinsol_pfl
+        - total_runtime_pfl
+        - success
+        - comparison_parflow
+        - comp_sum_failed
+
+    - name: result_icon
+      style: csv
+      tag: (full|run)+(icon+!eclm+!parflow+!parflowgpu)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - available_build
+        - jobid
+        - nodes
+        - ntasks
+        - taskspernode
+        - threadspertask
+        - runtime_sec
+        - runtime
+        - total_ave_icon
+        - physics_ave_icon
+        - modelinit_ave_icon
+        - success
+        - comparison_icon
+        - comp_sum_failed
 
     - name: result_eclm_parflow
       style: csv
-      tag: (eclm+parflow+!icon)
+      tag: (full|run)+(eclm+parflow+!icon+!parflowgpu)
       sort: nodes, taskspernode
       column:
         - { title: "system", _: system_name_hardcode}
-        - { title: "version", _: system_version}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
         - { title: "queue", _: bench_queue}
         - { title: "account", _: bench_account}
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
+        - available_build
         - jobid
         - nodes
         - ntasks
@@ -505,21 +865,62 @@ result:
         - threadspertask
         - runtime_sec
         - runtime
+        - init_eclm
+        - run_loop_eclm
+        - solver_pfl
+        - richards_exclude_pfl
+        - kinsol_pfl
+        - total_runtime_pfl
         - success
         - comparison_eclm
         - comparison_parflow
+        - comp_sum_failed
+
+    - name: result_eclm_parflowgpu
+      style: csv
+      tag: (full|run)+(eclm+parflowgpu+!icon+!parflow)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - available_build
+        - jobid
+        - nodes
+        - ntasks
+        - taskspernode
+        - threadspertask
+        - runtime_sec
+        - runtime
+        - init_eclm
+        - run_loop_eclm
+        - solver_pfl
+        - richards_exclude_pfl
+        - kinsol_pfl
+        - total_runtime_pfl
+        - success
+        - comparison_eclm
+        - comparison_parflow
+        - comp_sum_failed
+
 
     - name: result_eclm_icon
       style: csv
-      tag: (eclm+!parflow+icon)
+      tag: (full|run)+(eclm+!parflow+icon+!parflowgpu)
       sort: nodes, taskspernode
       column:
         - { title: "system", _: system_name_hardcode}
-        - { title: "version", _: system_version}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
         - { title: "queue", _: bench_queue}
         - { title: "account", _: bench_account}
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
+        - available_build
         - jobid
         - nodes
         - ntasks
@@ -527,21 +928,29 @@ result:
         - threadspertask
         - runtime_sec
         - runtime
+        - total_ave_icon
+        - physics_ave_icon
+        - modelinit_ave_icon
+        - init_eclm
+        - run_loop_eclm
         - success
         - comparison_eclm
         - comparison_icon
+        - comp_sum_failed
 
     - name: result_eclm_parflow_icon
       style: csv
-      tag: (eclm+parflow+icon)
+      tag: (full|run)+(eclm+parflow+icon+!parflowgpu)
       sort: nodes, taskspernode
       column:
         - { title: "system", _: system_name_hardcode}
-        - { title: "version", _: system_version}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
         - { title: "queue", _: bench_queue}
         - { title: "account", _: bench_account}
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
+        - available_build
         - jobid
         - nodes
         - ntasks
@@ -549,7 +958,53 @@ result:
         - threadspertask
         - runtime_sec
         - runtime
+        - total_ave_icon
+        - physics_ave_icon
+        - modelinit_ave_icon
+        - init_eclm
+        - run_loop_eclm
+        - solver_pfl
+        - richards_exclude_pfl
+        - kinsol_pfl
+        - total_runtime_pfl
         - success
         - comparison_eclm
         - comparison_icon
         - comparison_parflow
+        - comp_sum_failed
+
+    - name: result_eclm_parflowgpu_icon
+      style: csv
+      tag: (full|run)+(eclm+parflowgpu+icon+!parflow)
+      sort: nodes, taskspernode
+      column:
+        - { title: "system", _: system_name_hardcode}
+        - { title: "env", _: env_str}
+        - { title: "mode_exec", _: mode_exec}
+        - { title: "queue", _: bench_queue}
+        - { title: "account", _: bench_account}
+        - { title: "variant", _: variant}
+        - { title: "components", _: model_id }
+        - available_build
+        - jobid
+        - nodes
+        - ntasks
+        - taskspernode
+        - threadspertask
+        - runtime_sec
+        - runtime
+        - total_ave_icon
+        - physics_ave_icon
+        - modelinit_ave_icon
+        - init_eclm
+        - run_loop_eclm
+        - solver_pfl
+        - richards_exclude_pfl
+        - kinsol_pfl
+        - total_runtime_pfl
+        - success
+        - comparison_eclm
+        - comparison_icon
+        - comparison_parflow
+        - comp_sum_failed
+        
