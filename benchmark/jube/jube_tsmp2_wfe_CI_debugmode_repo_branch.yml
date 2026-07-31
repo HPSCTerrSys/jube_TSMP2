@@ -526,7 +526,7 @@ step:
  # 6. Compare test with reference
   - name: compare
     tag: full|run
-    depend: execute
+    depend: verify
     use:  
       - auxcompare
       - combinationTsmp
