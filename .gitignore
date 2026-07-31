@@ -1,2 +1,5 @@
 benchmark/jube/download_data/
 benchmark/jube/outpath/
+benchmark/jube/*copy*
+benchmark/jube/jube_info*
+benchmark/jube/Tests_jube_hello_world/
