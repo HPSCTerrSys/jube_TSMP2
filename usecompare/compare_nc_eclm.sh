@@ -5,7 +5,7 @@
 # Example: ./compare_nc.sh test.nc ref.nc H2OSOI NEE ER GPP QSOIL
 
 # Uses NCO
-ml Stages/2025  GCC  OpenMPI
+ml Stages/2026  GCC  OpenMPI
 module load NCO
 
 
@@ -92,11 +92,18 @@ if [ $sumVar -gt 0 ]; then
     echo "Threshold is $zero"
     echo "There are $sumVar variables with an error greater than the threshold $zero"  
     echo "The eCLM comparison is FAILED"
+    echo "The eCLM comparison value is 1"
+    echo "eclm 1" >> comparison_sum.out
     echo
     exit 1
 else 
     echo "Threshold is $zero"
     echo "There are $sumVar variables with an error greater than the threshold $zero"
     echo "The eCLM comparison is SUCCESSFUL"
+    echo "The eCLM comparison value is 0"
+    echo "eclm 0" >> comparison_sum.out
 fi
 echo
+
+mv diff.nc diff_eclm.nc
+mv max.nc max_eclm.nc

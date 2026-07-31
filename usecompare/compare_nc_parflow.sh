@@ -4,9 +4,13 @@
 # Usage: ./compare_nc.sh test.nc ref.nc var1 var2 var3 ...
 # Example: ./compare_nc.sh test.nc ref.nc H2OSOI NEE ER GPP QSOIL
 
+set -x
+
 # Uses NCO
-ml Stages/2025  GCC  OpenMPI
+ml Stages/2026  GCC  OpenMPI
 module load NCO
+ml ncview
+ml
 
 
 ## INPUTS read as args:
@@ -44,11 +48,14 @@ if [ ! -f "$Name_REF" ]; then
     exit 2	
 fi
 
+echo "ncdump TEST.out"
+ncdump -h $Name_TEST
+echo "ncdump REF.out"
+ncdump -h $Name_REF
 
 # STEP 1: Compute differences and max difference
 echo "Computing differences"
-ncdiff $Name_TEST $Name_REF diff.nc
-
+ncdiff $Name_TEST $Name_REF diff.nc || exit 1
 
 # STEP 2: Compute abs(max()) for each variable
 echo
@@ -92,11 +99,19 @@ if [ $sumVar -gt 0 ]; then
     echo "Threshold is $zero"
     echo "There are $sumVar variables with an error greater than the threshold $zero"  
     echo "The parflow comparison is FAILED"
+    echo "The parflow comparison value is 1"
+    echo "parflow 1" >> comparison_sum.out
     echo
     exit 1
 else 
     echo "Threshold is $zero"
     echo "There are $sumVar variables with an error greater than the threshold $zero"
     echo "The parflow comparison is SUCCESSFUL"
+    echo "The parflow comparison value is 0"
+    echo "parflow 0" >> comparison_sum.out
 fi
 echo
+
+echo pwd
+# mv diff.nc diff_pfl.nc
+# mv max.nc max_pfl.nc
