@@ -501,15 +501,14 @@ step:
         _: |
           if [[ -f $build_env_path ]]; then
             ${run_command}
-            echo "true" > success
           else
             echo "Build failed"
             mkdir -p ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701
             echo "Mock done file" > ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/${done_run}
-            echo "false" > success
           fi
           cp ${jube_benchmark_rundir}/000002_verifybuild/work/build_available ${jube_benchmark_rundir}/000004_execute/work/
-        
+      - echo "true" > success
+      
  # 5. Verify the results of the simulation
   - name: verify
     tag: full|run  
