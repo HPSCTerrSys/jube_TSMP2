@@ -115,20 +115,28 @@ parameterset:
 
       - {name: build_env_path, _: "${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}"}
       - {name: compare_path, _: "${jube_benchmark_rundir}/000006_compare/work/"} 
-      
+  
+  
+  # 1. Info test case used
+  - name: testcaseInfo
+    parameter:
+    - {name: WFE, _: TSMP2_workflow-engine}
+    - {name: date_str, _: 20170701}  
+    - {name: expid, _: eur-11u}
+
   # 1. File name to check run is finished   
   # - name: finished_run
     # parameter:
       # - {name: done_run, _: ready}
   - name: finished_run
     parameter:
-    - {name: done_run, tag: icon+!eclm+!parflow+!parflowgpu, _: eur-11u_restart_ATMO_20170702T000000Z.nc}
-    - {name: done_run, tag: eclm+!icon+!parflow+!parflowgpu, _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
-    - {name: done_run, tag: parflow|parflowgpu+!icon+!eclm, _: eur-11u.out.00001.nc}
-    - {name: done_run, tag: icon+eclm+!parflow+!parflowgpu, _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
-    - {name: done_run, tag: eclm+parflow|parflowgpu+!icon, _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
-    - {name: done_run, tag: icon+eclm+parflow|parflowgpu, _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
-    - {name: done_run, tag: "!icon+!eclm+!parflow+!parflowgpu", _: eCLM_eur-11u.datm.rs1.2017-07-02-00000.bin}
+    - {name: done_run, tag: icon+!eclm+!parflow+!parflowgpu, _: ${expid}_restart_ATMO_20170702T000000Z.nc}
+    - {name: done_run, tag: eclm+!icon+!parflow+!parflowgpu, _: eCLM_${expid}.datm.rs1.2017-07-02-00000.bin}
+    - {name: done_run, tag: parflow|parflowgpu+!icon+!eclm, _: ${expid}.out.00001.nc}
+    - {name: done_run, tag: icon+eclm+!parflow+!parflowgpu, _: eCLM_${expid}.datm.rs1.2017-07-02-00000.bin}
+    - {name: done_run, tag: eclm+parflow|parflowgpu+!icon, _: eCLM_${expid}.datm.rs1.2017-07-02-00000.bin}
+    - {name: done_run, tag: icon+eclm+parflow|parflowgpu, _: eCLM_${expid}.datm.rs1.2017-07-02-00000.bin}
+    - {name: done_run, tag: "!icon+!eclm+!parflow+!parflowgpu", _: eCLM_${expid}.datm.rs1.2017-07-02-00000.bin}
  
  
   # 2. TSMP2-components for the build
@@ -253,13 +261,13 @@ parameterset:
       # TO RUN 
       - name: run_command
         _: 
-           git clone -b master https://github.com/HPSCTerrSys/TSMP2_workflow-engine.git ;
-           wfe_dir=$(realpath TSMP2_workflow-engine) ;
-           mkdir -p TSMP2_workflow-engine/dta/forcing/eclm ;
-           mkdir -p TSMP2_workflow-engine/dta/forcing/icon/latbc ;
-           ln -sf ${root_storage}/download_data/forcing/eclm/forcing TSMP2_workflow-engine/dta/forcing/eclm/forcing ;
-           ln -sf ${root_storage}/download_data/forcing/icon/latbc/201707 TSMP2_workflow-engine/dta/forcing/icon/latbc/201707 ;
-           ln -sf ${root_storage}/download_data/restart/20170630 TSMP2_workflow-engine/dta/restart/20170630 ;
+           git clone -b master https://github.com/HPSCTerrSys/${WFE}.git ;
+           wfe_dir=$(realpath ${WFE}) ;
+           mkdir -p ${WFE}/dta/forcing/eclm ;
+           mkdir -p ${WFE}/dta/forcing/icon/latbc ;
+           ln -sf ${root_storage}/download_data/forcing/eclm/forcing ${WFE}/dta/forcing/eclm/forcing ;
+           ln -sf ${root_storage}/download_data/forcing/icon/latbc/201707 ${WFE}/dta/forcing/icon/latbc/201707 ;
+           ln -sf ${root_storage}/download_data/restart/20170630 ${WFE}/dta/restart/20170630 ;
            cd ${wfe_dir} ;
            git submodule update --init ;
            cd ${wfe_dir}/ctl ;
@@ -272,10 +280,10 @@ parameterset:
            sed -i -e 's/ico_node=3/ico_node=${ico_nodes}/g' master.conf ;
            sed -i -e 's/clm_node=1/clm_node=${clm_nodes}/g' master.conf ;
            sed -i -e 's/pfl_node=2/pfl_node=${pfl_nodes}/g' master.conf ;
-           sed -i -e 's|tsmp2_dir=$TSMP2_DIR|tsmp2_dir=\"${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine\"|g' master.conf ;
+           sed -i -e 's|tsmp2_dir=$TSMP2_DIR|tsmp2_dir=\"${jube_benchmark_rundir}/000004_execute/work/${WFE}\"|g' master.conf ;
            sed -i -e 's|tsmp2_install_dir=""|tsmp2_install_dir=\"${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}\"|g' master.conf ;
            sed -i -e 's|tsmp2_env=""|tsmp2_env=\"${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}\"|g' master.conf ;
-           sed -i -e 's/EXP_ID="eur-12-iic"/EXP_ID="eur-11u"/g' master.conf ;
+           sed -i -e 's/EXP_ID="eur-12-iic"/EXP_ID="${expid}"/g' master.conf ;
            echo "model_id= ${model_id}" ;
            echo "env_str= ${env_str}" ;
            echo "current_dir= $(pwd)" ;
@@ -286,7 +294,7 @@ parameterset:
            echo "current_dir_ctl= $(pwd)" ;
            cp ../run/sim_*/tsmp2.job . ;
            cp ../run/sim_*/slm_multiprog_mapping.conf . ;
-           cd ../run/sim_${model_id_sim}_20170701 ;
+           cd ../run/sim_${model_id_sim}_${date_str} ;
            echo "current_dir_run= $(pwd)" ;
            sbatch tsmp2.job > run.jobid 
            
@@ -327,107 +335,107 @@ parameterset:
       - name: compare_command
         tag: (eclm+!parflow+!icon+!parflowgpu)|(!icon+!eclm+!parflow+!parflowgpu)
         _:
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
            
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
 
       - name: compare_command
         tag: parflow+!parflowgpu+!eclm+!icon
         _:
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
-           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
 
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
 
 
       - name: compare_command
         tag: parflowgpu+!parflow+!eclm+!icon
         _:
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
-           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
            
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"           
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"           
 
       - name: compare_command
         tag: icon+!eclm+!parflow+!parflowgpu
         _:
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
-           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
            
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
 
       - name: compare_command
         tag: eclm+parflow+!parflowgpu+!icon
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
            
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
-           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
            
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
 
       - name: compare_command
         tag: eclm+parflowgpu+!parflow+!icon
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
            
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
-           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
 
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
 
       - name: compare_command
         tag: eclm+icon+!parflow+!parflowgpu
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
            
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
-           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
 
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
 
       - name: compare_command
         tag: eclm+parflow+icon+!parflowgpu
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
 
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/";
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/";
 
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
-           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
 
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
-           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
 
 
       - name: compare_command
         tag: eclm+parflowgpu+icon+!parflow
         _: 
-           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
-           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+           bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+           cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
 
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/";
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/";
 
-           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
-           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+           bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
+           cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
 
 
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
-           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+           cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -497,14 +505,14 @@ step:
       - execMode
       - finished_run
     do:
-      - done_file: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/${done_run}
+      - done_file: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${done_run}
         _: |
           if [[ -f $build_env_path ]]; then
             ${run_command}
           else
             echo "Build failed"
-            mkdir -p ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701
-            echo "Mock done file" > ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/${done_run}
+            mkdir -p ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}
+            echo "Mock done file" > ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${done_run}
           fi
           cp ${jube_benchmark_rundir}/000002_verifybuild/work/build_available ${jube_benchmark_rundir}/000004_execute/work/
       - echo "true" > success
@@ -688,27 +696,27 @@ analyser:
         - use: build_pattern
           _: ${jube_benchmark_rundir}/000004_execute/work/build_available
         - use: runtime_pattern
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u_sim_20170701000000_*.out
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}_sim_${date_str}000000_*.out
         - use: jobid_pattern
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/run.jobid
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/run.jobid
         - use: success_pattern
           _: success
         - use: nodes_pattern
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/tsmp2.job
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/tsmp2.job
         - use: tasks_pattern
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/tsmp2.job
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/tsmp2.job
         - use: compare_pattern_eclm
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out
         - use: compare_pattern_parflow
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out
         - use: compare_pattern_icon
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out
         - use: time_pattern_eclm
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/timing/model_timing.0*
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/timing/model_timing.0*
         - use: time_pattern_parflow
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.timing.csv
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.timing.csv
         - use: time_pattern_icon
-          _: ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u_sim_20170701000000_*.err
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}_sim_${date_str}000000_*.err
         - use: compare_sum
           _: ${jube_benchmark_rundir}/000006_compare/work/comparison_sum.out
 
