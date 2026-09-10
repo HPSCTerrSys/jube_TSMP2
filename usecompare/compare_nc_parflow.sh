@@ -57,15 +57,6 @@ ncdump -h $Name_REF
 echo "Computing differences"
 ncdiff $Name_TEST $Name_REF diff.nc || exit 1
 
-# Test diff.nc is there
-ls -l diff.nc*
-ps -ef | grep ncdiff
-
-sync
-while [[ ! -f diff.nc ]]; do
-    sleep 0.1
-done
-
 
 # STEP 2: Compute abs(max()) for each variable
 echo
