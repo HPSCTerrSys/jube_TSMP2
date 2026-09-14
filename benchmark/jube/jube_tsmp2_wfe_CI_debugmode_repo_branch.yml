@@ -60,6 +60,7 @@ parameterset:
 
   # 00. Info test case used
   # WFE: name of the repository, e.g., TSMP2_workflow-engine
+  # branch_name_WFE: name of the branch to use from the WFE repository, e.g., master
   # date_str: initialdate of the simulation (YYYYMMDD)
   # date_rest_icon: date of the restart file for ICON (YYYYMMDD)
   # date_rest_eclm: date of the restart file for eCLM (YYYY-MM-DD)
@@ -68,6 +69,7 @@ parameterset:
   - name: testcaseInfo
     parameter:
     - {name: WFE, _: TSMP2_workflow-engine}
+    - {name: branch_name_WFE, _: master}
     - {name: date_str, _: 20170701}
     - {name: date_rest_icon, _: 20170702}
     - {name: date_rest_eclm, _: 2017-07-02}  
@@ -270,7 +272,7 @@ parameterset:
       # TO RUN 
       - name: run_command
         _: 
-           git clone -b master https://github.com/HPSCTerrSys/${WFE}.git ;
+           git clone -b ${branch_name_WFE} https://github.com/HPSCTerrSys/${WFE}.git ;
            wfe_dir=$(realpath ${WFE}) ;
            mkdir -p ${WFE}/dta/forcing/eclm ;
            mkdir -p ${WFE}/dta/forcing/icon/latbc ;
