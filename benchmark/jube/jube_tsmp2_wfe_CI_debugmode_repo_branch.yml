@@ -299,7 +299,7 @@ parameterset:
            echo "env_str= ${env_str}" ;
            echo "current_dir= $(pwd)" ;
            cd sim_ctl ;
-           sed -i -e 's/TIME_END=$(date +%s)/TIME_END=$(date +%s) ; touch ready; RUNTIME_sec=$(( TIME_END - TIME_START )); echo "The runtime is ${RUNTIME_sec} seconds."; ml ncview ; ncdump -h ${done_run}/g' sim_run.sh ;
+           sed -i -e 's/TIME_END=$(date +%s)/TIME_END=$(date +%s) ; touch ready; RUNTIME_sec=$(( TIME_END - TIME_START )); echo "The runtime is ${RUNTIME_sec} seconds." ;/g' sim_run.sh ;
            cd .. ;
            bash control_tsmp2.sh ;
            echo "current_dir_ctl= $(pwd)" ;
