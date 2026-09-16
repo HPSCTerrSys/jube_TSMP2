@@ -62,8 +62,8 @@ parameterset:
   # WFE: name of the repository, e.g., TSMP2_workflow-engine
   # branch_name_WFE: name of the branch to use from the WFE repository, e.g., master
   # date_str: initialdate of the simulation (YYYYMMDD)
-  # date_rest_icon: date of the restart file for ICON (YYYYMMDD)
-  # date_rest_eclm: date of the restart file for eCLM (YYYY-MM-DD)
+  # date_rest_short: date of the restart file no separators (YYYYMMDD)
+  # date_rest_long: date of the restart file with separators (YYYY-MM-DD)
   # expid: expid of the experiment in the master.conf file (in ctl/), e.g., eur-11u
 
   - name: testcaseInfo
@@ -71,8 +71,8 @@ parameterset:
     - {name: WFE, _: TSMP2_workflow-engine}
     - {name: branch_name_WFE, _: master}
     - {name: date_str, _: 20170701}
-    - {name: date_rest_icon, _: 20170702}
-    - {name: date_rest_eclm, _: 2017-07-02}  
+    - {name: date_rest_short, _: 20170702}
+    - {name: date_rest_long, _: 2017-07-02}  
     - {name: expid, _: eur-11u}
 
 
@@ -141,13 +141,13 @@ parameterset:
       # - {name: done_run, _: ready}
   - name: finished_run
     parameter:
-    - {name: done_run, tag: icon+!eclm+!parflow+!parflowgpu, _: "${expid}_restart_ATMO_${date_rest_icon}T000000Z.nc"}
-    - {name: done_run, tag: eclm+!icon+!parflow+!parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_eclm}-00000.bin"}
+    - {name: done_run, tag: icon+!eclm+!parflow+!parflowgpu, _: "${expid}_restart_ATMO_${date_rest_short}T000000Z.nc"}
+    - {name: done_run, tag: eclm+!icon+!parflow+!parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
     - {name: done_run, tag: parflow|parflowgpu+!icon+!eclm, _: "${expid}.out.00001.nc"}
-    - {name: done_run, tag: icon+eclm+!parflow+!parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_eclm}-00000.bin"}
-    - {name: done_run, tag: eclm+parflow|parflowgpu+!icon, _: "eCLM_${expid}.datm.rs1.${date_rest_eclm}-00000.bin"}
-    - {name: done_run, tag: icon+eclm+parflow|parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_eclm}-00000.bin"}
-    - {name: done_run, tag: "!icon+!eclm+!parflow+!parflowgpu", _: "eCLM_${expid}.datm.rs1.${date_rest_eclm}-00000.bin"}
+    - {name: done_run, tag: icon+eclm+!parflow+!parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: eclm+parflow|parflowgpu+!icon, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: icon+eclm+parflow|parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: "!icon+!eclm+!parflow+!parflowgpu", _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
  
  
   # 2. TSMP2-components for the build
@@ -374,7 +374,7 @@ parameterset:
       - name: compare_command
         tag: icon+!eclm+!parflow+!parflowgpu
         _:
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_icon}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_icon}T000000Z_1h.nc > Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc > Errors_output_icon.out ;
            cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
            
            echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
@@ -410,7 +410,7 @@ parameterset:
            bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
            
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_icon}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_icon}T000000Z_1h.nc > Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc > Errors_output_icon.out ;
            cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
 
            echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
@@ -428,7 +428,7 @@ parameterset:
            bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
            cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
 
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_icon}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_icon}T000000Z_1h.nc > Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc > Errors_output_icon.out ;
            cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
 
 
@@ -445,7 +445,7 @@ parameterset:
            cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
 
 
-           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_icon}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_icon}T000000Z_1h.nc > Errors_output_icon.out ;
+           bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc > Errors_output_icon.out ;
            cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
 
 
