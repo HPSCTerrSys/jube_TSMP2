@@ -143,7 +143,7 @@ parameterset:
     parameter:
     - {name: done_run, tag: icon+!eclm+!parflow+!parflowgpu, _: "${expid}_restart_ATMO_${date_rest_short}T000000Z.nc"}
     - {name: done_run, tag: eclm+!icon+!parflow+!parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
-    - {name: done_run, tag: parflow|parflowgpu+!icon+!eclm, _: "${expid}.out.00001.nc"}
+    - {name: done_run, tag: parflow|parflowgpu+!icon+!eclm, _: "${expid}.out.timing.csv"}
     - {name: done_run, tag: icon+eclm+!parflow+!parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
     - {name: done_run, tag: eclm+parflow|parflowgpu+!icon, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
     - {name: done_run, tag: icon+eclm+parflow|parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
