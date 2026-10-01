@@ -75,8 +75,16 @@ parameterset:
     - {name: date_rest_long, _: 2017-07-02}  
     - {name: expid, _: eur-11u}
 
+  # 000. Add parameters to platform.xml
+  # 000. Add parameters to platform.xml
+  - name: executeset
+    init_with: platform.xml
+    parameter:
+      - {name: sim_path, _: "${WFE}/run/sim_${model_id_sim}_${date_str}"}
+      - {name: done_file, _: "${sim_path}/${done_run}"}
 
-  # 000. System specific information running the benchmark
+
+  # 0000. System specific information running the benchmark
   #    Tags for each machine: jurecadc, juwels, jupiter, jusuf
   - name: systemInfo
     parameter:
@@ -307,8 +315,8 @@ parameterset:
            cp ../run/sim_*/slm_multiprog_mapping.conf . ;
            cd ../run/sim_${model_id_sim}_${date_str} ;
            echo "current_dir_run= $(pwd)" ;
-           sbatch tsmp2.job > run.jobid 
-           
+           sbatch tsmp2.job > run.jobid  ;
+           cd $jube_wp_abspath ;
 
       #
       # TO NOT RUN
@@ -509,7 +517,7 @@ step:
  # 4. Run test
   - name: execute
     tag: full|run  
-    depend: download
+    depend: [download,verifybuild]
     use:
       - systemInfo
       - inputParam
@@ -517,18 +525,20 @@ step:
       - testcaseInfo
       - execMode
       - finished_run
+      - executeset
     do:
-      - done_file: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${done_run}
+      - done_file: ${done_file}
         _: |
           if [[ -f $build_env_path ]]; then
             ${run_command}
           else
             echo "Build failed"
-            mkdir -p ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}
-            echo "Mock done file" > ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${done_run}
+            mkdir -p ${sim_path}
+            echo "Mock done file" > ${done_file}
           fi
-          cp ${jube_benchmark_rundir}/000002_verifybuild/work/build_available ${jube_benchmark_rundir}/000004_execute/work/
-      - echo "true" > success
+      - | 
+        cp verifybuild/build_available .
+        echo "true" > success
       
  # 5. Verify the results of the simulation
   - name: verify
@@ -590,8 +600,8 @@ patternset:
   - name: time_pattern_eclm
     pattern:
       - name: init_eclm
-        type: string
-        _: 'CPL:INIT"\s+-\s+\d+\s+-\s+([0-9.]+)'
+        type: float
+        _: 'CPL:INIT"\s+-\s+\d+\s+-\s+$jube_pat_fp'
 
       - name: run_loop_eclm
         type: string
@@ -710,7 +720,7 @@ analyser:
         - use: build_pattern
           _: ${jube_benchmark_rundir}/000004_execute/work/build_available
         - use: runtime_pattern
-          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}_sim_${date_str}000000_*.out
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}_sim_${date_str}_*.out
         - use: jobid_pattern
           _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/run.jobid
         - use: success_pattern
@@ -730,7 +740,7 @@ analyser:
         - use: time_pattern_parflow
           _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.timing.csv
         - use: time_pattern_icon
-          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}_sim_${date_str}000000_*.err
+          _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}_sim_${date_str}_*.err
         - use: compare_sum
           _: ${jube_benchmark_rundir}/000006_compare/work/comparison_sum.out
 
