@@ -76,6 +76,7 @@ for VAR in "${VARS[@]}"; do
     value=$(ncks -C -H -v max_${VAR} -s "%.10f" max.nc )   
     if [ -z "$value" ]; then
         echo "Variable $VAR not found in max.nc"
+        noVar=$((noVar+1))
         continue
     fi	
     if (( $(echo "$value > $zero" | bc -l) )); then
