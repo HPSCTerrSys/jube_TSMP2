@@ -52,7 +52,7 @@ parameterset:
   #                                        # TO DO if all machines and environments have references then replace ref_system and ref_env by ${system_name} and ${env_str}
   - name: userInfo
     parameter:
-      - {name: branch_name, _: master}
+      - {name: branch_name, _: master}          # master, parallel-build-mvh
       - {name: ref_branch, _: master}
       - {name: ref_env, _: $env_str}                  # jsc.2025.gnu.openmpi, $env_str
       - {name: ref_system, _: JURECADC}               # JURECADC, $system_name
@@ -262,7 +262,15 @@ parameterset:
            echo $(pwd) ;
            ml ;
            echo "build_tsmp2.sh ${combination_str} --env ./env/${env_str}" ;
+           TIME_START=$(date +%s) ;
+           echo "Build start= $(date)" ;
            bash build_tsmp2.sh ${combination_str} --env ./env/${env_str} ;
+           TIME_END=$(date +%s) ;
+           echo "Build TIME_END= $(date)" ;
+           BUILD_sec=$((TIME_END - TIME_START)) ;
+           echo "Build time is ${BUILD_sec} seconds" ;
+           cd .. ;
+           echo "${BUILD_sec}" > build_time_seconds.txt ;
            ml ;
 #           mkdir -p ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str} ;
 #           cp -r ./bin/${system_name}_${model_id}/* ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str}
@@ -587,6 +595,11 @@ patternset:
         type: string
         _: '(\d{4}-\d{2}-\d{2}\s+(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d)'
 
+  - name: buildtime_pattern
+    pattern:
+      - name: buildtime_sec
+        _: '$jube_pat_int'      
+
   - name: runtime_pattern
     pattern:
       - name: runtime
@@ -711,6 +724,8 @@ analyser:
           _: ${jube_benchmark_rundir}/000002_verifybuild/work/build_available
         - use: done_pattern
           _: ${jube_benchmark_rundir}/000001_build/done
+        - use: buildtime_pattern
+          _: ${jube_benchmark_rundir}/000001_build/work/build_time_seconds.txt
 
   - name: bench_info
     analyse:
@@ -719,6 +734,8 @@ analyser:
       file:
         - use: build_pattern
           _: ${jube_benchmark_rundir}/000004_execute/work/build_available
+        - use: buildtime_pattern
+          _: ${jube_benchmark_rundir}/000001_build/work/stderr         
         - use: runtime_pattern
           _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}_sim_${date_str}_*.out
         - use: jobid_pattern
@@ -766,6 +783,7 @@ result:
         - { title: "components", _: model_id }
         - available_build
         - date_build
+        - { title: "buildtime (sec)", _: buildtime_sec }
 
     - name: result_eclm
       style: csv
