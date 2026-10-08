@@ -76,7 +76,6 @@ parameterset:
     - {name: expid, _: eur-11u}
 
   # 000. Add parameters to platform.xml
-  # 000. Add parameters to platform.xml
   - name: executeset
     init_with: platform.xml
     parameter:
@@ -253,7 +252,7 @@ parameterset:
     parameter:
       # TO BUILD
       - name: build_command
-        tag: full|build|!full+!build+!run
+        tag: full|build|(!full+!build+!run)
         _: 
            git clone -b ${branch_name} https://github.com/HPSCTerrSys/TSMP2.git ;
            cd TSMP2 ;
