@@ -54,7 +54,7 @@ parameterset:
     parameter:
       - {name: branch_name, _: master}          # master, parallel-build-mvh
       - {name: ref_branch, _: master}
-      - {name: ref_env, _: $env_str}                  # jsc.2025.gnu.openmpi, $env_str
+      - {name: ref_env, _: jsc.2025.gnu.openmpi}                  # jsc.2025.gnu.openmpi, $env_str
       - {name: ref_system, _: JURECADC}               # JURECADC, $system_name
       - {name: ref_system, tag: jupiter,_: JUPITER}   # JURECADC, $system_name
 
@@ -149,13 +149,13 @@ parameterset:
       # - {name: done_run, _: ready}
   - name: finished_run
     parameter:
-    - {name: done_run, tag: icon+!eclm+!parflow+!parflowgpu, _: "${expid}_restart_ATMO_${date_rest_short}T000000Z.nc"}
-    - {name: done_run, tag: eclm+!icon+!parflow+!parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
-    - {name: done_run, tag: parflow|parflowgpu+!icon+!eclm, _: "${expid}.out.timing.csv"}
-    - {name: done_run, tag: icon+eclm+!parflow+!parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
-    - {name: done_run, tag: eclm+parflow|parflowgpu+!icon, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
-    - {name: done_run, tag: icon+eclm+parflow|parflowgpu, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
-    - {name: done_run, tag: "!icon+!eclm+!parflow+!parflowgpu", _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: icon+(!eclm+!parflow+!parflowgpu), _: "${expid}_restart_ATMO_${date_rest_short}T000000Z.nc"}
+    - {name: done_run, tag: eclm+(!icon+!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: (parflow|parflowgpu)+(!icon+!eclm), _: "${expid}.out.timing.csv"}
+    - {name: done_run, tag: (icon+eclm)+(!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: eclm+(parflow|parflowgpu)+!icon, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: icon+eclm+(parflow|parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: "(!icon+!eclm+!parflow+!parflowgpu)", _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
  
  
   # 2. TSMP2-components for the build
@@ -170,43 +170,43 @@ parameterset:
     parameter: 
   #  
   # 2.a For the build command: TO DO add parflowGPU
-    - {name: combination_str, tag: icon+!eclm+!parflow+!parflowgpu, _: --icon}
-    - {name: combination_str, tag: eclm+!icon+!parflow+!parflowgpu, _: --eclm}
-    - {name: combination_str, tag: parflow+!icon+!eclm+!parflowgpu, _: --parflow}
-    - {name: combination_str, tag: icon+eclm+!parflow+!parflowgpu, _: --icon --eclm}
-    - {name: combination_str, tag: eclm+parflow+!icon+!parflowgpu, _: --parflow --eclm}
-    - {name: combination_str, tag: icon+eclm+parflow+!parflowgpu, _: --icon --eclm --parflow}
+    - {name: combination_str, tag: icon+(!eclm+!parflow+!parflowgpu), _: --icon}
+    - {name: combination_str, tag: eclm+(!icon+!parflow+!parflowgpu), _: --eclm}
+    - {name: combination_str, tag: parflow+(!icon+!eclm+!parflowgpu), _: --parflow}
+    - {name: combination_str, tag: icon+eclm+(!parflow+!parflowgpu), _: --icon --eclm}
+    - {name: combination_str, tag: eclm+parflow+(!icon+!parflowgpu), _: --parflow --eclm}
+    - {name: combination_str, tag: icon+eclm+parflow+(!parflowgpu), _: --icon --eclm --parflow}
     - {name: combination_str, tag: "!icon+!eclm+!parflow+!parflowgpu", _: --eclm}
-    - {name: combination_str, tag: parflowgpu+!icon+!eclm+!parflow, _: --parflowGPU}
-    - {name: combination_str, tag: parflowgpu+eclm+!icon+!parflow, _: --eclm --parflowGPU}
+    - {name: combination_str, tag: parflowgpu+(!icon+!eclm+!parflow), _: --parflowGPU}
+    - {name: combination_str, tag: parflowgpu+eclm+(!icon+!parflow), _: --eclm --parflowGPU}
     - {name: combination_str, tag: parflowgpu+icon+eclm+!parflow, _: --icon --eclm --parflowGPU}
   #
     # 2.b Model ID for build:
-    - {name: model_id, tag: icon+!eclm+!parflow+!parflowgpu, _: ICON}
-    - {name: model_id, tag: eclm+!icon+!parflow+!parflowgpu, _: eCLM}
-    - {name: model_id, tag: parflow+!icon+!eclm+!parflowgpu, _: ParFlow}
-    - {name: model_id, tag: icon+eclm+!parflow+!parflowgpu, _: ICON-eCLM}
-    - {name: model_id, tag: eclm+parflow+!icon+!parflowgpu, _: eCLM-ParFlow}
+    - {name: model_id, tag: icon+(!eclm+!parflow+!parflowgpu), _: ICON}
+    - {name: model_id, tag: eclm+(!icon+!parflow+!parflowgpu), _: eCLM}
+    - {name: model_id, tag: parflow+(!icon+!eclm+!parflowgpu), _: ParFlow}
+    - {name: model_id, tag: icon+eclm+(!parflow+!parflowgpu), _: ICON-eCLM}
+    - {name: model_id, tag: eclm+parflow+(!icon+!parflowgpu), _: eCLM-ParFlow}
     - {name: model_id, tag: icon+eclm+parflow+!parflowgpu, _: ICON-eCLM-ParFlow}
     - {name: model_id, tag: "!icon+!eclm+!parflow+!parflowgpu", _: eCLM}
-    - {name: model_id, tag: parflowgpu+!icon+!eclm+!parflow, _: ParFlowGPU}
-    - {name: model_id, tag: parflowgpu+eclm+!icon+!parflow, _: eCLM-ParFlowGPU}
+    - {name: model_id, tag: parflowgpu+(!icon+!eclm+!parflow), _: ParFlowGPU}
+    - {name: model_id, tag: parflowgpu+eclm+(!icon+!parflow), _: eCLM-ParFlowGPU}
     - {name: model_id, tag: parflowgpu+icon+eclm+!parflow, _: ICON-eCLM-ParFlowGPU}
   #  
     # 2.b Model ID for running sim:
-    - {name: model_id_sim, tag: icon+!eclm+!parflow+!parflowgpu, _: icon}
-    - {name: model_id_sim, tag: eclm+!icon+!parflow+!parflowgpu, _: eclm}
-    - {name: model_id_sim, tag: parflow+!icon+!eclm+!parflowgpu, _: parflow}
-    - {name: model_id_sim, tag: icon+eclm+!parflow+!parflowgpu, _: iconeclm}
-    - {name: model_id_sim, tag: eclm+parflow+!icon+!parflowgpu, _: eclmparflow}
+    - {name: model_id_sim, tag: icon+(!eclm+!parflow+!parflowgpu), _: icon}
+    - {name: model_id_sim, tag: eclm+(!icon+!parflow+!parflowgpu), _: eclm}
+    - {name: model_id_sim, tag: parflow+(!icon+!eclm+!parflowgpu), _: parflow}
+    - {name: model_id_sim, tag: icon+eclm+(!parflow+!parflowgpu), _: iconeclm}
+    - {name: model_id_sim, tag: eclm+parflow+(!icon+!parflowgpu), _: eclmparflow}
     - {name: model_id_sim, tag: icon+eclm+parflow+!parflowgpu, _: iconeclmparflow}
     - {name: model_id_sim, tag: "!icon+!eclm+!parflow+!parflowgpu", _: eclm}  
-    - {name: model_id_sim, tag: parflowgpu+!icon+!eclm+!parflow, _: parflowgpu}
-    - {name: model_id_sim, tag: parflowgpu+eclm+!icon+!parflow, _: eclmparflowgpu}
+    - {name: model_id_sim, tag: parflowgpu+(!icon+!eclm+!parflow), _: parflowgpu}
+    - {name: model_id_sim, tag: parflowgpu+eclm+(!icon+!parflow), _: eclmparflowgpu}
     - {name: model_id_sim, tag: parflowgpu+icon+eclm+!parflow, _: iconeclmparflowgpu}
   #
   # 2.c Environment:
-    - {name: env_str, _: jsc.2025.intel.psmpi}                                          
+    - {name: env_str, _: jsc.2025.gnu.openmpi}                                          
     - {name: env_str, tag: jsc.2026.nvhpc.openmpi, _: jsc.2026.nvhpc.openmpi}
     - {name: env_str, tag: jsc.2026.gnu.openmpi, _: jsc.2026.gnu.openmpi}
     - {name: env_str, tag: jsc.2025.gnu.openmpi, _: jsc.2025.gnu.openmpi}
@@ -617,40 +617,40 @@ patternset:
         _: 'CPL:INIT"\s+-\s+\d+\s+-\s+$jube_pat_fp'
 
       - name: run_loop_eclm
-        type: string
-        _: 'CPL:RUN_LOOP"\s+-\s+\d+\s+-\s+([0-9.]+)'
+        type: float
+        _: 'CPL:RUN_LOOP"\s+-\s+\d+\s+-\s+$jube_pat_fp'
 
   - name: time_pattern_parflow
     pattern:
       - name: solver_pfl
-        type: string
-        _: 'Solver,([\d.eE+-]+),'
+        type: float
+        _: 'Solver,$jube_pat_fp,'
 
       - name: richards_exclude_pfl
-        type: string
-        _: 'Richards Exclude 1st Time Step,([\d.eE+-]+),'
- 
+        type: float
+        _: 'Richards Exclude 1st Time Step,$jube_pat_fp,'
+
       - name: kinsol_pfl
-        type: string
-        _: 'KINSol,([\d.eE+-]+),'
+        type: float
+        _: 'KINSol,$jube_pat_fp,'
 
       - name: total_runtime_pfl
-        type: string
-        _: 'Total Runtime,([\d.eE+-]+),' 
+        type: float
+        _: 'Total Runtime,$jube_pat_fp,' 
 
   - name: time_pattern_icon
     pattern:
       - name: total_ave_icon
         type: float
-        _: 'total\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+([\d.]+)'
+        _: 'total\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+\S+\s+$jube_pat_fp'
 
       - name: physics_ave_icon
         type: float
-        _: 'physics\s+\d+\s+\S+\s+\[\d+\]\s+\S+\s+\S+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+([0-9.]+)'
+        _: 'physics\s+\d+\s+\S+\s+\[\d+\]\s+\S+\s+\S+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+$jube_pat_fp'
 
       - name: modelinit_ave_icon
         type: float
-        _: 'model_init\s+[1-9][0-9][0-9]*\s+\S+\s+\[\d+\]\s+\S+\s+\S+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+([0-9.]+)'
+        _: 'model_init\s+[1-9][0-9][0-9]*\s+\S+\s+\[\d+\]\s+\S+\s+\S+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+[0-9.]+\s+\[\d+\]\s+$jube_pat_fp'
         
   - name: success_pattern
     pattern:
