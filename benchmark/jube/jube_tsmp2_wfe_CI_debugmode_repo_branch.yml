@@ -149,7 +149,7 @@ parameterset:
       # - {name: done_run, _: ready}
   - name: finished_run
     parameter:
-    - {name: done_run, tag: icon+(!eclm+!parflow+!parflowgpu), _: "${expid}_restart_ATMO_${date_rest_short}T000000Z.nc"}
+    - {name: done_run, tag: icon+(!eclm+!parflow+!parflowgpu), _: "output_schedule.ps"}
     - {name: done_run, tag: eclm+(!icon+!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
     - {name: done_run, tag: (parflow|parflowgpu)+(!icon+!eclm), _: "${expid}.out.timing.csv"}
     - {name: done_run, tag: (icon+eclm)+(!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
@@ -771,7 +771,7 @@ result:
 
     - name: result_build
       style: csv
-      tag: build|!full+!build+!run
+      tag: build|(!full+!build+!run)
       sort: nodes, taskspernode
       column:
         - { title: "system", _: system_name_hardcode}
@@ -959,7 +959,7 @@ result:
 
     - name: result_eclm_icon
       style: csv
-      tag: (full|run)+(eclm+!parflow+icon+!parflowgpu)
+      tag: (full|run)+(eclm+icon+!parflow+!parflowgpu)
       sort: nodes, taskspernode
       column:
         - { title: "system", _: system_name_hardcode}
