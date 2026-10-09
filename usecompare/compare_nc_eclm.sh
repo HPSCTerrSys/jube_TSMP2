@@ -105,6 +105,3 @@ else
     echo "eclm 0" >> comparison_sum.out
 fi
 echo
-
-mv diff.nc diff_eclm.nc
-mv max.nc max_eclm.nc

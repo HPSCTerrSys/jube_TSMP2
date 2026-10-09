@@ -106,6 +106,3 @@ else
     echo "icon 0" >> comparison_sum.out
 fi
 echo
-
-mv diff.nc diff_icon.nc
-mv max.nc max_icon.nc

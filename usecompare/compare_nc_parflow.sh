@@ -115,5 +115,3 @@ fi
 echo
 
 echo pwd
-# mv diff.nc diff_pfl.nc
-# mv max.nc max_pfl.nc

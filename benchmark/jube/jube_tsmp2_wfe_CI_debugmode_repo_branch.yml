@@ -400,10 +400,14 @@ parameterset:
         _: 
            bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
-           
+           mv max.nc max_eclm.nc ;
+           mv diff.nc diff_eclm.nc ;
+
            bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
            cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
-           
+           mv max.nc max_parflow.nc ;
+           mv diff.nc diff_parflow.nc ;
+
            echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
            echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
 
@@ -412,9 +416,13 @@ parameterset:
         _: 
            bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
-           
+           mv max.nc max_eclm.nc ;
+           mv diff.nc diff_eclm.nc ;
+
            bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
            cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
+           mv max.nc max_parflow.nc ;
+           mv diff.nc diff_parflow.nc ;
 
            echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
            echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
@@ -424,9 +432,13 @@ parameterset:
         _: 
            bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
-           
+           mv max.nc max_eclm.nc ;
+           mv diff.nc diff_eclm.nc ;
+
            bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc > Errors_output_icon.out ;
            cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
+           mv max.nc max_icon.nc ;
+           mv diff.nc diff_icon.nc ;
 
            echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
            echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
@@ -436,32 +448,42 @@ parameterset:
         _: 
            bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
-
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/";
+           mv max.nc max_eclm.nc ;
+           mv diff.nc diff_eclm.nc ;
 
            bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
            cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
+           mv max.nc max_parflow.nc ;
+           mv diff.nc diff_parflow.nc ;
 
            bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc > Errors_output_icon.out ;
            cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
+           mv max.nc max_icon.nc ;
+           mv diff.nc diff_icon.nc ;
 
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
 
       - name: compare_command
         tag: eclm+parflowgpu+icon+!parflow
         _: 
            bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/eCLM_${expid}.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
            cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_eclm.out ;
-
-           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
-           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/";
+           mv max.nc max_eclm.nc ;
+           mv diff.nc diff_eclm.nc ;
 
            bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/${expid}.out.00001.nc > Errors_output_parflow.out ;
            cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_parflow.out ;
-
+           mv max.nc max_parflow.nc ;
+           mv diff.nc diff_parflow.nc ;
 
            bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/ICON_out_EU-R13B5_inst_DOM01_ML_${date_rest_short}T000000Z_1h.nc > Errors_output_icon.out ;
            cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/Errors_output_icon.out ;
+           mv max.nc max_icon.nc ;
+           mv diff.nc diff_icon.nc ;
+
+           echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_${date_str}/";
+           echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/"
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -734,7 +756,7 @@ analyser:
         - use: build_pattern
           _: ${jube_benchmark_rundir}/000004_execute/work/build_available
         - use: buildtime_pattern
-          _: ${jube_benchmark_rundir}/000001_build/work/stderr         
+          _: ${jube_benchmark_rundir}/000001_build/work/build_time_seconds.txt                   
         - use: runtime_pattern
           _: ${jube_benchmark_rundir}/000004_execute/work/${WFE}/run/sim_${model_id_sim}_${date_str}/${expid}_sim_${date_str}_*.out
         - use: jobid_pattern
@@ -797,6 +819,7 @@ result:
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
         - available_build
+        - { title: "buildtime (sec)", _: buildtime_sec }         
         - jobid
         - nodes
         - ntasks
@@ -823,6 +846,7 @@ result:
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
         - available_build
+        - { title: "buildtime (sec)", _: buildtime_sec } 
         - jobid
         - nodes
         - ntasks
@@ -851,6 +875,7 @@ result:
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
         - available_build
+        - { title: "buildtime (sec)", _: buildtime_sec }
         - jobid
         - nodes
         - ntasks
@@ -879,6 +904,7 @@ result:
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
         - available_build
+        - { title: "buildtime (sec)", _: buildtime_sec }
         - jobid
         - nodes
         - ntasks
@@ -906,6 +932,7 @@ result:
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
         - available_build
+        - { title: "buildtime (sec)", _: buildtime_sec }
         - jobid
         - nodes
         - ntasks
@@ -937,6 +964,7 @@ result:
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
         - available_build
+        - { title: "buildtime (sec)", _: buildtime_sec }  
         - jobid
         - nodes
         - ntasks
@@ -969,6 +997,7 @@ result:
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
         - available_build
+        - { title: "buildtime (sec)", _: buildtime_sec }
         - jobid
         - nodes
         - ntasks
@@ -999,6 +1028,7 @@ result:
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
         - available_build
+        - { title: "buildtime (sec)", _: buildtime_sec }
         - jobid
         - nodes
         - ntasks
@@ -1034,6 +1064,7 @@ result:
         - { title: "variant", _: variant}
         - { title: "components", _: model_id }
         - available_build
+        - { title: "buildtime (sec)", _: buildtime_sec }
         - jobid
         - nodes
         - ntasks
