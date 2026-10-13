@@ -1,0 +1,8 @@
+dos:
+  _: |
+     execute_step=$(cat execute/success)
+     if [[ "${execute_step}" == "true" ]]; then
+         echo "true"
+     else
+         echo "false"
+     fi

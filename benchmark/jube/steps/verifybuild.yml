@@ -1,0 +1,12 @@
+dos:
+  _: |
+     echo "build_env_path = $build_env_path "
+     echo "bin_storage = ${root_storage}/bin "
+     if [[ -f $build_env_path ]]; then
+         echo "true" > build_available
+         mkdir -p ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str} ;
+         cp -r ./build/TSMP2/bin/${system_name}_${model_id}/* ${bin_storage}/${branch_name}/${system_name}_${model_id}_${env_str}
+     else
+         echo "Build failed"
+         echo "false" > build_available
+     fi

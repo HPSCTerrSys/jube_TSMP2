@@ -1,0 +1,21 @@
+dos:
+  # TO DOWNLOAD DATA
+  # Downloads data and saves it on a folder outside the \outpath so it can be used for other jube-submissions
+  - tag: data
+    _: |
+       if [[ -f $build_env_path ]]; then
+           mkdir -p ${root_storage}/download_data ;
+           cd ${root_storage}/download_data ;
+           wget -x -l 8 -nH --cut-dirs=4 -e robots=off --recursive --no-parent --reject="index.html*" https://datapub.fz-juelich.de/slts/tsmp_testcases/data/tsmp2_eur11_wfe_iniforc/ ;
+       else
+           echo "Build failed"
+       fi
+
+  # TO NOT DOWNLOAD DATA, DATA is LINKED
+  - tag: nodata|(!data+!nodata)
+    _: |
+       if [[ -f $build_env_path ]]; then
+           echo 'Download nothing'
+       else
+           echo "Build failed"
+       fi

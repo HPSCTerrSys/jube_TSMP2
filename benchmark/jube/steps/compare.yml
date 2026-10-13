@@ -1,0 +1,126 @@
+dos:
+  # Check existence of build env path only once
+  # If path does not exist, exist before executing compare script
+  # !!! UNTESTED !!!
+  - |
+    if [[ ! -f $build_env_path ]]; then
+        echo "Build failed"
+        exit 0 # script ends but reports success; use 1 to indicate a failure
+    fi
+
+  - tag: (eclm+!parflow+!icon+!parflowgpu)|(!icon+!eclm+!parflow+!parflowgpu)
+    _: |
+       bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+       cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+       
+       echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+       echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+
+  - tag: parflow+!parflowgpu+!eclm+!icon
+    _: |
+       bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+       cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+
+       echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+       echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+
+  - tag: parflowgpu+!parflow+!eclm+!icon
+    _: |
+       bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+       cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+       
+       echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+       echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"           
+
+  - tag: icon+!eclm+!parflow+!parflowgpu
+    _: |
+       bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+       cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+       
+       echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+       echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+
+  - tag: eclm+parflow+!parflowgpu+!icon
+    _: |
+       bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+       cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+       mv max.nc max_eclm.nc ;
+       mv diff.nc diff_eclm.nc ;
+
+       bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+       cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+       mv max.nc max_parflow.nc ;
+       mv diff.nc diff_parflow.nc ;
+
+       echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+       echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+
+  - tag: eclm+parflowgpu+!parflow+!icon
+    _: |
+       bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+       cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+       mv max.nc max_eclm.nc ;
+       mv diff.nc diff_eclm.nc ;
+
+       bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+       cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+       mv max.nc max_parflow.nc ;
+       mv diff.nc diff_parflow.nc ;
+
+       echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+       echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+
+  - tag: eclm+icon+!parflow+!parflowgpu
+    _: |
+       bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+       cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+       mv max.nc max_eclm.nc ;
+       mv diff.nc diff_eclm.nc ;
+
+       bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+       cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+       mv max.nc max_icon.nc ; 
+       mv diff.nc diff_icon.nc ;
+
+       echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+       echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/"
+
+  - tag: eclm+parflow+icon+!parflowgpu
+    _: |
+       bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+       cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+       mv max.nc max_eclm.nc ;
+       mv diff.nc diff_eclm.nc ;
+
+       bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+       cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+       mv max.nc max_parflow.nc ;
+       mv diff.nc diff_parflow.nc ;
+
+       bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T000000Z_1h.nc > Errors_output_icon.out ;
+       cp ./Errors_output_icon.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_icon.out ;
+       mv max.nc max_icon.nc ;
+       mv diff.nc diff_icon.nc ;
+
+       echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+       echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/";
+
+  - tag: eclm+parflowgpu+icon+!parflow
+    _: |
+       bash compare_nc_eclm.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eCLM_eur-11u.clm2.h0.2017-07-01-00000.nc > Errors_output_eclm.out ;
+       cp ./Errors_output_eclm.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_eclm.out ;
+       mv max.nc max_eclm.nc ;
+       mv diff.nc diff_eclm.nc ;
+
+       bash compare_nc_parflow.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/eur-11u.out.00001.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/eur-11u.out.00001.nc > Errors_output_parflow.out ;
+       cp ./Errors_output_parflow.out ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/Errors_output_parflow.out ;
+       mv max.nc max_parflow.nc ;
+       mv diff.nc diff_parflow.nc ;
+
+       bash compare_nc_icon.sh ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_20170702T00000０Z_1h.nc ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/ICON_out_EU-R13B5_inst_DOM01_ML_201707０２T００００００Z_１h.nc > Errors_output_icon.out ;
+       cp ./Errors_output_icon.out ${jube_benchmark_rundir}/₀₀₀₀₀₄_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_2₀₁₇₀₇₀₁/Errors_output_icon.out ;
+       mv max.nc max_icon.nc ;
+       mv diff.nc diff_icon.nc ;
+
+       echo "Ref_path= ${ref_storage}/${ref_branch}/${ref_system}_${ref_env}/${model_id_sim}_20170701/";
+       echo "Test_path= ${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine/run/sim_${model_id_sim}_20170701/";
