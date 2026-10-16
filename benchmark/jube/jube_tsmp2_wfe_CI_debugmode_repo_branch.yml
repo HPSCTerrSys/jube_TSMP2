@@ -205,7 +205,7 @@ parameterset:
     - {name: model_id_sim, _: eclm}
     - {name: model_id_sim, tag: (icon|icongpu)+(!eclm+!parflow+!parflowgpu), _: icon}
     - {name: model_id_sim, tag: eclm+(!icon+!icongpu+!parflow+!parflowgpu), _: eclm}
-    - {name: model_id_sim, tag: (parflow|parflowgpu)+(!icon+!icongpu+!eclm+), _: parflow}
+    - {name: model_id_sim, tag: (parflow|parflowgpu)+(!icon+!icongpu+!eclm), _: parflow}
     - {name: model_id_sim, tag: (icon|icongpu)+eclm+(!parflow+!parflowgpu), _: iconeclm}
     - {name: model_id_sim, tag: eclm+(parflow|parflowgpu)+(!icon+!icongpu), _: eclmparflow}
     - {name: model_id_sim, tag: (icon|icongpu)+eclm+(parflow|parflowgpu), _: iconeclmparflow} 
