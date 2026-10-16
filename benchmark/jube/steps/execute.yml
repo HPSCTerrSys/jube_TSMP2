@@ -32,13 +32,14 @@ dos:
            cd sim_ctl ;
            sed -i -e 's/TIME_END=$(date +%s)/TIME_END=$(date +%s) ; touch ready; RUNTIME_sec=$(( TIME_END - TIME_START )); echo "The runtime is ${RUNTIME_sec} seconds."; ml ncview ; ncdump -h ${done_run}/g' sim_run.sh ;
            cd .. ;
+           source ${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}
            bash control_tsmp2.sh ;
            echo "current_dir_ctl= $(pwd)" ;
            cp ../run/sim_*/tsmp2.job . ;
            cp ../run/sim_*/slm_multiprog_mapping.conf . ;
            cd ../run/sim_${model_id_sim}_20170701 ;
            echo "current_dir_run= $(pwd)" ;
-           sbatch tsmp2.job > run.jobid 
+           sbatch tsmp2.job > run.jobid ;
            cd $jube_wp_abspath ;
        else
            echo "Build failed"

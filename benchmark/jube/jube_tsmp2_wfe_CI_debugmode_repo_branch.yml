@@ -169,37 +169,37 @@ parameterset:
     parameter: 
   #  
   # 2.a For the build command: TO DO add parflowGPU
+    - {name: combination_str, _: --eclm}
     - {name: combination_str, tag: icon+(!eclm+!parflow+!parflowgpu), _: --icon}
     - {name: combination_str, tag: eclm+(!icon+!parflow+!parflowgpu), _: --eclm}
     - {name: combination_str, tag: parflow+(!icon+!eclm+!parflowgpu), _: --parflow}
     - {name: combination_str, tag: icon+eclm+(!parflow+!parflowgpu), _: --icon --eclm}
     - {name: combination_str, tag: eclm+parflow+(!icon+!parflowgpu), _: --parflow --eclm}
     - {name: combination_str, tag: icon+eclm+parflow+(!parflowgpu), _: --icon --eclm --parflow}
-    - {name: combination_str, tag: "!icon+!eclm+!parflow+!parflowgpu", _: --eclm}
     - {name: combination_str, tag: parflowgpu+(!icon+!eclm+!parflow), _: --parflowGPU}
     - {name: combination_str, tag: parflowgpu+eclm+(!icon+!parflow), _: --eclm --parflowGPU}
     - {name: combination_str, tag: parflowgpu+icon+eclm+!parflow, _: --icon --eclm --parflowGPU}
   #
     # 2.b Model ID for build:
+    - {name: model_id, _: eCLM}
     - {name: model_id, tag: icon+(!eclm+!parflow+!parflowgpu), _: ICON}
     - {name: model_id, tag: eclm+(!icon+!parflow+!parflowgpu), _: eCLM}
     - {name: model_id, tag: parflow+(!icon+!eclm+!parflowgpu), _: ParFlow}
     - {name: model_id, tag: icon+eclm+(!parflow+!parflowgpu), _: ICON-eCLM}
     - {name: model_id, tag: eclm+parflow+(!icon+!parflowgpu), _: eCLM-ParFlow}
     - {name: model_id, tag: icon+eclm+parflow+!parflowgpu, _: ICON-eCLM-ParFlow}
-    - {name: model_id, tag: "!icon+!eclm+!parflow+!parflowgpu", _: eCLM}
     - {name: model_id, tag: parflowgpu+(!icon+!eclm+!parflow), _: ParFlowGPU}
     - {name: model_id, tag: parflowgpu+eclm+(!icon+!parflow), _: eCLM-ParFlowGPU}
     - {name: model_id, tag: parflowgpu+icon+eclm+!parflow, _: ICON-eCLM-ParFlowGPU}
   #  
     # 2.b Model ID for running sim:
+    - {name: model_id_sim, _: eclm}
     - {name: model_id_sim, tag: icon+(!eclm+!parflow+!parflowgpu), _: icon}
     - {name: model_id_sim, tag: eclm+(!icon+!parflow+!parflowgpu), _: eclm}
     - {name: model_id_sim, tag: parflow+(!icon+!eclm+!parflowgpu), _: parflow}
     - {name: model_id_sim, tag: icon+eclm+(!parflow+!parflowgpu), _: iconeclm}
     - {name: model_id_sim, tag: eclm+parflow+(!icon+!parflowgpu), _: eclmparflow}
-    - {name: model_id_sim, tag: icon+eclm+parflow+!parflowgpu, _: iconeclmparflow}
-    - {name: model_id_sim, tag: "!icon+!eclm+!parflow+!parflowgpu", _: eclm}  
+    - {name: model_id_sim, tag: icon+eclm+parflow+!parflowgpu, _: iconeclmparflow} 
     - {name: model_id_sim, tag: parflowgpu+(!icon+!eclm+!parflow), _: parflowgpu}
     - {name: model_id_sim, tag: parflowgpu+eclm+(!icon+!parflow), _: eclmparflowgpu}
     - {name: model_id_sim, tag: parflowgpu+icon+eclm+!parflow, _: iconeclmparflowgpu}
