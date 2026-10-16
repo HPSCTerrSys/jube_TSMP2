@@ -13,7 +13,7 @@ dos:
            cd ${wfe_dir} ;
            git submodule update --init ;
            cd ${wfe_dir}/ctl ;
-           echo "current_dir= $(pwd)" ;
+           echo "current_dir= $$(pwd)" ;
            sed -i -e 's/MODEL_ID=ICON-eCLM-ParFlow/MODEL_ID=${model_id}/g' master.conf ;
            sed -i -e 's/lsim=( true true true )/lsim=( true true false )/g' master.conf ;
            sed -i -e 's/sim_wallclock=00:25:00/sim_wallclock=00:45:00/g' master.conf ;
@@ -28,17 +28,17 @@ dos:
            sed -i -e 's/EXP_ID="eur-12-iic"/EXP_ID="eur-11u"/g' master.conf ;
            echo "model_id= ${model_id}" ;
            echo "env_str= ${env_str}" ;
-           echo "current_dir= $(pwd)" ;
+           echo "current_dir= $$(pwd)" ;
            cd sim_ctl ;
            sed -i -e 's/TIME_END=$(date +%s)/TIME_END=$(date +%s) ; touch ready; RUNTIME_sec=$(( TIME_END - TIME_START )); echo "The runtime is ${RUNTIME_sec} seconds."; ml ncview ; ncdump -h ${done_run}/g' sim_run.sh ;
            cd .. ;
            source ${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}
            bash control_tsmp2.sh ;
-           echo "current_dir_ctl= $(pwd)" ;
+           echo "current_dir_ctl= $$(pwd)" ;
            cp ../run/sim_*/tsmp2.job . ;
            cp ../run/sim_*/slm_multiprog_mapping.conf . ;
            cd ../run/sim_${model_id_sim}_20170701 ;
-           echo "current_dir_run= $(pwd)" ;
+           echo "current_dir_run= $$(pwd)" ;
            sbatch tsmp2.job > run.jobid ;
            cd $jube_wp_abspath ;
        else

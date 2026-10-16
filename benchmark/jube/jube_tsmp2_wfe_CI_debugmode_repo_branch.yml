@@ -124,6 +124,7 @@ parameterset:
       - {name: clm_nodes, tag: jurecadc|juwels|jusuf, _: 1}
       - {name: clm_nodes, tag: jupiter, _: 1}  
 
+      - {name: ico_nodes, tag: gpu, _: 1}
       - {name: ico_nodes, tag: jurecadc|juwels|jusuf, _: 3}
       - {name: ico_nodes, tag: jupiter, _: 1}
 
@@ -148,13 +149,13 @@ parameterset:
       # - {name: done_run, _: ready}
   - name: finished_run
     parameter:
+    - {name: done_run, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}  
     - {name: done_run, tag: icon+(!eclm+!parflow+!parflowgpu), _: "output_schedule.ps"}
     - {name: done_run, tag: eclm+(!icon+!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
     - {name: done_run, tag: (parflow|parflowgpu)+(!icon+!eclm), _: "${expid}.out.timing.csv"}
     - {name: done_run, tag: (icon+eclm)+(!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
     - {name: done_run, tag: eclm+(parflow|parflowgpu)+!icon, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
     - {name: done_run, tag: icon+eclm+(parflow|parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
-    - {name: done_run, tag: "(!icon+!eclm+!parflow+!parflowgpu)", _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
  
  
   # 2. TSMP2-components for the build
@@ -200,9 +201,9 @@ parameterset:
     - {name: model_id_sim, tag: icon+eclm+(!parflow+!parflowgpu), _: iconeclm}
     - {name: model_id_sim, tag: eclm+parflow+(!icon+!parflowgpu), _: eclmparflow}
     - {name: model_id_sim, tag: icon+eclm+parflow+!parflowgpu, _: iconeclmparflow} 
-    - {name: model_id_sim, tag: parflowgpu+(!icon+!eclm+!parflow), _: parflowgpu}
-    - {name: model_id_sim, tag: parflowgpu+eclm+(!icon+!parflow), _: eclmparflowgpu}
-    - {name: model_id_sim, tag: parflowgpu+icon+eclm+!parflow, _: iconeclmparflowgpu}
+    - {name: model_id_sim, tag: parflowgpu+(!icon+!eclm+!parflow), _: parflow}
+    - {name: model_id_sim, tag: parflowgpu+eclm+(!icon+!parflow), _: eclmparflow} # eclmparflowgpu, only when TSMP2_workflow-engine has been modified to run parflowGPU
+    - {name: model_id_sim, tag: parflowgpu+icon+eclm+!parflow, _: iconeclmparflow # iconeclmparflowgpu
   #
   # 2.c Environment:
     - {name: env_str, _: jsc.2025.gnu.openmpi}                                          
@@ -223,10 +224,15 @@ parameterset:
   - name: inputParam
     parameter: 
 
-    # Bench queue: TO DO add GPU queues 
+    # Bench cpu queues:
     - {name: bench_queue, tag: jurecadc, _: dc-cpu}
     - {name: bench_queue, tag: juwels, _: batch}
     - {name: bench_queue, tag: jusuf, _: batch}
+    - {name: bench_queue, tag: jupiter, _: booster}
+    # Bench gpu queues: 
+    - {name: bench_queue, tag: jurecadc, _: dc-gpu}
+    - {name: bench_queue, tag: juwels, _: booster}
+    - {name: bench_queue, tag: jusuf, _: gpus}
     - {name: bench_queue, tag: jupiter, _: booster}
 
     # Change account     
@@ -291,6 +297,19 @@ step:
       - finished_run
       - executeset
     do: !include steps/execute.yml:["dos"]
+
+ # 4. Run test GPU
+  - name: execute
+    tag: (full|run)+gpu  
+    depend: [download,verifybuild]
+    use:
+      - systemInfo
+      - inputParam
+      - combinationTsmp
+      - testcaseInfo
+      - finished_run
+      - executeset
+    do: !include steps/executegpu.yml:["dos"]    
       
  # 5. Verify the results of the simulation
   - name: verify
