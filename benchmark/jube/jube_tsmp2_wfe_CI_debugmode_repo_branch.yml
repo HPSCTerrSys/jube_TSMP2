@@ -150,12 +150,12 @@ parameterset:
   - name: finished_run
     parameter:
     - {name: done_run, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}  
-    - {name: done_run, tag: icon+(!eclm+!parflow+!parflowgpu), _: "output_schedule.ps"}
-    - {name: done_run, tag: eclm+(!icon+!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
-    - {name: done_run, tag: (parflow|parflowgpu)+(!icon+!eclm), _: "${expid}.out.timing.csv"}
-    - {name: done_run, tag: (icon+eclm)+(!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
-    - {name: done_run, tag: eclm+(parflow|parflowgpu)+!icon, _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
-    - {name: done_run, tag: icon+eclm+(parflow|parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: (icon|icongpu)+(!eclm+!parflow+!parflowgpu), _: "output_schedule.ps"}
+    - {name: done_run, tag: eclm+(!icon+!icongpu+!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: (parflow|parflowgpu)+(!icon+!icongpu+!eclm), _: "${expid}.out.timing.csv"}
+    - {name: done_run, tag: (icon|icongpu)+eclm+(!parflow+!parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: eclm+(parflow|parflowgpu)+(!icon+!icongpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
+    - {name: done_run, tag: (icon|icongpu)+eclm+(parflow|parflowgpu), _: "eCLM_${expid}.datm.rs1.${date_rest_long}-00000.bin"}
  
  
   # 2. TSMP2-components for the build
@@ -171,39 +171,48 @@ parameterset:
   #  
   # 2.a For the build command: TO DO add parflowGPU
     - {name: combination_str, _: --eclm}
-    - {name: combination_str, tag: icon+(!eclm+!parflow+!parflowgpu), _: --icon}
-    - {name: combination_str, tag: eclm+(!icon+!parflow+!parflowgpu), _: --eclm}
-    - {name: combination_str, tag: parflow+(!icon+!eclm+!parflowgpu), _: --parflow}
-    - {name: combination_str, tag: icon+eclm+(!parflow+!parflowgpu), _: --icon --eclm}
-    - {name: combination_str, tag: eclm+parflow+(!icon+!parflowgpu), _: --parflow --eclm}
-    - {name: combination_str, tag: icon+eclm+parflow+(!parflowgpu), _: --icon --eclm --parflow}
-    - {name: combination_str, tag: parflowgpu+(!icon+!eclm+!parflow), _: --parflowGPU}
-    - {name: combination_str, tag: parflowgpu+eclm+(!icon+!parflow), _: --eclm --parflowGPU}
-    - {name: combination_str, tag: parflowgpu+icon+eclm+!parflow, _: --icon --eclm --parflowGPU}
+    - {name: combination_str, tag: icon+(icongpu+!eclm+!parflow+!parflowgpu), _: --icon}
+    - {name: combination_str, tag: icongpu+(icon+!eclm+!parflow+!parflowgpu), _: --icongpu}    
+    - {name: combination_str, tag: eclm+(!icon+!icongpu+!parflow+!parflowgpu), _: --eclm}
+    - {name: combination_str, tag: parflow+(!icon+!icongpu+!eclm+!parflowgpu), _: --parflow}
+    - {name: combination_str, tag: parflowgpu+(!icon+!icongpu+!eclm+!parflow), _: --parflowGPU}
+    - {name: combination_str, tag: icon+eclm+(!icongpu+!parflow+!parflowgpu), _: --icon --eclm}
+    - {name: combination_str, tag: icongpu+eclm+(!icon+!parflow+!parflowgpu), _: --icongpu --eclm}
+    - {name: combination_str, tag: eclm+parflow+(!icon+!icongpu+!parflowgpu), _: --eclm --parflow}
+    - {name: combination_str, tag: eclm+parflowgpu+(!icon+!icongpu+!parflow), _: --eclm --parflowgpu}
+    - {name: combination_str, tag: icon+eclm+parflow+(!icongpu+!parflowgpu), _: --icon --eclm --parflow}
+    - {name: combination_str, tag: icongpu+eclm+parflow+(!icon+!parflowgpu), _: --icongpu --eclm --parflow}
+    - {name: combination_str, tag: icon+eclm+parflowgpu+(!icongpu+!parflow), _: --icon --eclm --parflowgpu}
+    - {name: combination_str, tag: icongpu+eclm+parflowgpu+(!icon+!parflow), _: --icongpu --eclm --parflowgpu}
   #
     # 2.b Model ID for build:
     - {name: model_id, _: eCLM}
-    - {name: model_id, tag: icon+(!eclm+!parflow+!parflowgpu), _: ICON}
-    - {name: model_id, tag: eclm+(!icon+!parflow+!parflowgpu), _: eCLM}
-    - {name: model_id, tag: parflow+(!icon+!eclm+!parflowgpu), _: ParFlow}
-    - {name: model_id, tag: icon+eclm+(!parflow+!parflowgpu), _: ICON-eCLM}
-    - {name: model_id, tag: eclm+parflow+(!icon+!parflowgpu), _: eCLM-ParFlow}
-    - {name: model_id, tag: icon+eclm+parflow+!parflowgpu, _: ICON-eCLM-ParFlow}
-    - {name: model_id, tag: parflowgpu+(!icon+!eclm+!parflow), _: ParFlowGPU}
-    - {name: model_id, tag: parflowgpu+eclm+(!icon+!parflow), _: eCLM-ParFlowGPU}
-    - {name: model_id, tag: parflowgpu+icon+eclm+!parflow, _: ICON-eCLM-ParFlowGPU}
+    - {name: model_id, tag: icon+(!icongpu+!eclm+!parflow+!parflowgpu), _: ICON}
+    - {name: model_id, tag: icongpu+(!icon+!eclm+!parflow+!parflowgpu), _: ICONGPU}
+    - {name: model_id, tag: eclm+(!icon+!icongpu+!parflow+!parflowgpu), _: eCLM}
+    - {name: model_id, tag: parflow+(!icon+!icongpu+!eclm+!parflowgpu), _: ParFlow}
+    - {name: model_id, tag: parflowgpu+(!icon+!icongpu+!eclm+!parflow), _: ParFlowGPU}
+    - {name: model_id, tag: icon+eclm+(!icongpu+!parflow+!parflowgpu), _: ICON-eCLM}
+    - {name: model_id, tag: icongpu+eclm+(!icon+!parflow+!parflowgpu), _: ICONGPU-eCLM}
+    - {name: model_id, tag: eclm+parflow+(!icon+!icongpu+!parflowgpu), _: eCLM-ParFlow}
+    - {name: model_id, tag: eclm+parflowgpu+(!icon+!icongpu+!parflow), _: eCLM-ParFlowGPU}
+    - {name: model_id, tag: icon+eclm+parflow+(!icongpu+!parflowgpu), _: ICON-eCLM-ParFlow}
+    - {name: model_id, tag: icongpu+eclm+parflow+(!icon+!parflowgpu), _: ICONGPU-eCLM-ParFlow}
+    - {name: model_id, tag: icon+eclm+parflowgpu+(!icongpu+!parflow), _: ICON-eCLM-ParFlowGPU}
+    - {name: model_id, tag: icongpu+eclm+parflowgpu+(!icon+!parflow), _: ICONGPU-eCLM-ParFlowGPU}   
   #  
     # 2.b Model ID for running sim:
     - {name: model_id_sim, _: eclm}
-    - {name: model_id_sim, tag: icon+(!eclm+!parflow+!parflowgpu), _: icon}
-    - {name: model_id_sim, tag: eclm+(!icon+!parflow+!parflowgpu), _: eclm}
-    - {name: model_id_sim, tag: parflow+(!icon+!eclm+!parflowgpu), _: parflow}
-    - {name: model_id_sim, tag: icon+eclm+(!parflow+!parflowgpu), _: iconeclm}
-    - {name: model_id_sim, tag: eclm+parflow+(!icon+!parflowgpu), _: eclmparflow}
-    - {name: model_id_sim, tag: icon+eclm+parflow+!parflowgpu, _: iconeclmparflow} 
-    - {name: model_id_sim, tag: parflowgpu+(!icon+!eclm+!parflow), _: parflow}
-    - {name: model_id_sim, tag: parflowgpu+eclm+(!icon+!parflow), _: eclmparflow} # eclmparflowgpu, only when TSMP2_workflow-engine has been modified to run parflowGPU
-    - {name: model_id_sim, tag: parflowgpu+icon+eclm+!parflow, _: iconeclmparflow # iconeclmparflowgpu
+    - {name: model_id_sim, tag: (icon|icongpu)+(!eclm+!parflow+!parflowgpu), _: icon}
+    - {name: model_id_sim, tag: eclm+(!icon+!icongpu+!parflow+!parflowgpu), _: eclm}
+    - {name: model_id_sim, tag: (parflow|parflowgpu)+(!icon+!icongpu+!eclm+), _: parflow}
+    - {name: model_id_sim, tag: (icon|icongpu)+eclm+(!parflow+!parflowgpu), _: iconeclm}
+    - {name: model_id_sim, tag: eclm+(parflow|parflowgpu)+(!icon+!icongpu), _: eclmparflow}
+    - {name: model_id_sim, tag: (icon|icongpu)+eclm+(parflow|parflowgpu), _: iconeclmparflow} 
+    # May need to add new tags when changes are made to the TSMP2_workflow-engine to run parflowGPU and ICON-GPU
+    # eclmparflowgpu
+    # iconeclmparflowgpu
+    # icongpu 
   #
   # 2.c Environment:
     - {name: env_str, _: jsc.2025.gnu.openmpi}                                          
@@ -309,7 +318,7 @@ step:
       - testcaseInfo
       - finished_run
       - executeset
-    do: !include steps/executegpu.yml:["dos"]    
+    do: !include steps/execute_gpu.yml:["dos"]    
       
  # 5. Verify the results of the simulation
   - name: verify

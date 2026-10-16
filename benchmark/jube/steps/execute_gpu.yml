@@ -1,0 +1,50 @@
+dos:
+  # TO RUN
+  - done_file: ${done_file}
+    _: |
+       if [[ -f $build_env_path ]]; then
+           git clone -b master https://github.com/HPSCTerrSys/TSMP2_workflow-engine.git ;
+           wfe_dir=$(realpath TSMP2_workflow-engine) ;
+           mkdir -p TSMP2_workflow-engine/dta/forcing/eclm ;
+           mkdir -p TSMP2_workflow-engine/dta/forcing/icon/latbc ;
+           ln -sf ${root_storage}/download_data/forcing/eclm/forcing TSMP2_workflow-engine/dta/forcing/eclm/forcing ;
+           ln -sf ${root_storage}/download_data/forcing/icon/latbc/201707 TSMP2_workflow-engine/dta/forcing/icon/latbc/201707 ;
+           ln -sf ${root_storage}/download_data/restart/20170630 TSMP2_workflow-engine/dta/restart/20170630 ;
+           cd ${wfe_dir} ;
+           git submodule update --init ;
+           cd ${wfe_dir}/ctl ;
+           echo "current_dir= $$(pwd)" ;
+           sed -i -e 's/MODEL_ID=ICON-eCLM-ParFlow/MODEL_ID=${model_id}/g' master.conf ;
+           sed -i -e 's/lsim=( true true true )/lsim=( true true false )/g' master.conf ;
+           sed -i -e 's/sim_wallclock=00:25:00/sim_wallclock=00:45:00/g' master.conf ;
+           sed -i -e 's/debugmode=false/debugmode=true/g' master.conf ;
+           sed -i -e 's/account=""/account="${bench_account}"/g' master.conf ;
+           sed -i -e 's/ico_node=3/ico_node=${ico_nodes}/g' master.conf ;
+           sed -i -e 's/clm_node=1/clm_node=${clm_nodes}/g' master.conf ;
+           sed -i -e 's/pfl_node=2/pfl_node=${pfl_nodes}/g' master.conf ;
+           sed -i -e 's|tsmp2_dir=$TSMP2_DIR|tsmp2_dir=\"${jube_benchmark_rundir}/000004_execute/work/TSMP2_workflow-engine\"|g' master.conf ;
+           sed -i -e 's|tsmp2_install_dir=""|tsmp2_install_dir=\"${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}\"|g' master.conf ;
+           sed -i -e 's|tsmp2_env=""|tsmp2_env=\"${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}\"|g' master.conf ;
+           sed -i -e 's/EXP_ID="eur-12-iic"/EXP_ID="eur-11u"/g' master.conf ;
+           echo "model_id= ${model_id}" ;
+           echo "env_str= ${env_str}" ;
+           echo "current_dir= $$(pwd)" ;
+           cd sim_ctl ;
+           sed -i -e 's/TIME_END=$(date +%s)/TIME_END=$(date +%s) ; touch ready; RUNTIME_sec=$(( TIME_END - TIME_START )); echo "The runtime is ${RUNTIME_sec} seconds."; ml ncview ; ncdump -h ${done_run}/g' sim_run.sh ;
+           cd .. ;
+           source ${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}
+           bash control_tsmp2.sh ;
+           echo "current_dir_ctl= $$(pwd)" ;
+           cp ../run/sim_*/tsmp2.job . ;
+           cp ../run/sim_*/slm_multiprog_mapping.conf . ;
+           cd ../run/sim_${model_id_sim}_20170701 ;
+           echo "current_dir_run= $$(pwd)" ;
+           sbatch tsmp2.job > run.jobid ;
+           cd $jube_wp_abspath ;
+       else
+           echo "Build failed"
+           mkdir -p ${sim_path}
+           echo "Mock done file" > ${done_file}
+       fi
+       cp verifybuild/build_available .
+  - echo "true" > success
