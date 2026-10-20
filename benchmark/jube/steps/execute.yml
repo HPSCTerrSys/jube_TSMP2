@@ -3,7 +3,7 @@ dos:
   - done_file: ${done_file}
     _: |
        if [[ -f $build_env_path ]]; then
-           git clone -b master https://github.com/HPSCTerrSys/TSMP2_workflow-engine.git ;
+           git clone -b ${branch_name_WFE} https://github.com/HPSCTerrSys/TSMP2_workflow-engine.git ;
            wfe_dir=$(realpath TSMP2_workflow-engine) ;
            mkdir -p TSMP2_workflow-engine/dta/forcing/eclm ;
            mkdir -p TSMP2_workflow-engine/dta/forcing/icon/latbc ;

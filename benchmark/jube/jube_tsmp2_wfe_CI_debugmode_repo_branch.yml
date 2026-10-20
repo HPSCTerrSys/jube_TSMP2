@@ -69,8 +69,7 @@ parameterset:
   - name: testcaseInfo
     parameter:
     - {name: WFE, _: TSMP2_workflow-engine}
-    - {name: branch_name_WFE, _: master}
-    - {name: date_str, _: 20170701}
+    - {name: branch_name_WFE, _: dev-gpu}    # master, dev-gpu    - {name: date_str, _: 20170701}
     - {name: date_rest_short, _: 20170702}
     - {name: date_rest_long, _: 2017-07-02}  
     - {name: expid, _: eur-11u}
@@ -117,16 +116,16 @@ parameterset:
       - {name: threadspertask, tag: jupiter, _: 288}
       - {name: threadspertask, tag: jusuf, _: 128}
       
-      - {name: pfl_nodes, tag: gpu, _: 1}
-      - {name: pfl_nodes, tag: jurecadc|juwels|jusuf, _: 2}
+      - {name: pfl_nodes, tag: parflowgpu, _: 1}
+      - {name: pfl_nodes, tag: (jurecadc|juwels|jusuf)+!parflowgpu, _: 2}
       - {name: pfl_nodes, tag: jupiter, _: 1}
  
       - {name: clm_nodes, tag: jurecadc|juwels|jusuf, _: 1}
       - {name: clm_nodes, tag: jupiter, _: 1}  
 
-      - {name: ico_nodes, tag: gpu, _: 1}
-      - {name: ico_nodes, tag: jurecadc|juwels|jusuf, _: 3}
-      - {name: ico_nodes, tag: jupiter, _: 1}
+      - {name: ico_nodes, tag: icongpu, _: 1}
+      - {name: ico_nodes, tag: (jurecadc|juwels|jusuf)+!icongpu, _: 3}
+      - {name: ico_nodes, tag: jupiter+!icongpu, _: 1}
 
       - {name: root_storage, tag: jurecadc|jusuf|juwels, _: "/p/project1/cslts/shared_data/CI_TSMP2"}
       - {name: root_storage, tag: jupiter, _: "/e/project1/eessx/shared_data/CI_TSMP2"}
@@ -296,7 +295,7 @@ step:
         
  # 4. Run test
   - name: execute
-    tag: full|run  
+    tag: '(full|run)+!gpu'  
     depend: [download,verifybuild]
     use:
       - systemInfo
