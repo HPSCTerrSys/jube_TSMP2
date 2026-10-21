@@ -52,7 +52,7 @@ parameterset:
   #                                        # TO DO if all machines and environments have references then replace ref_system and ref_env by ${system_name} and ${env_str}
   - name: userInfo
     parameter:
-      - {name: branch_name, _: master}          # master, parallel-build-mvh, env-s2026-nvhpc
+      - {name: branch_name, _: env-s2026-nvhpc}          # master, parallel-build-mvh, env-s2026-nvhpc
       - {name: ref_branch, _: master}
       - {name: ref_env, _: jsc.2025.gnu.openmpi}                  # jsc.2025.gnu.openmpi, $env_str
       - {name: ref_system, _: JURECADC}               # JURECADC, $system_name

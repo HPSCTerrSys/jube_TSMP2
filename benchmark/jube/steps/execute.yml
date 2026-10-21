@@ -37,6 +37,7 @@ dos:
            echo "current_dir_ctl= $$(pwd)" ;
            echo "model_id_sim= ${model_id_sim}" ;
            cd ../run/sim_${model_id_sim}_20170701 ;
+           sed -i -E 's/^[[:space:]]*#[[:space:]]*pfset[[:space:]]+Solver\.Linear\.Preconditioner[[:space:]]+PFMG.*$/pfset Solver.Linear.Preconditioner\t\t\t MGSemi\npfset Solver.Linear.Preconditioner.MGSemi.MaxIter\t 1\npfset Solver.Linear.Preconditioner.MGSemi.MaxLevels\t 10/' coup_oas.tcl
            echo "current_dir_run= $$(pwd)" ;
            sbatch tsmp2.job > run.jobid ;
            cd $jube_wp_abspath ;
