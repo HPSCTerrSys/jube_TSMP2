@@ -35,6 +35,7 @@ dos:
            source ${jube_benchmark_rundir}/000001_build/work/TSMP2/bin/${system_name}_${model_id}/${env_str}
            bash control_tsmp2.sh ;
            echo "current_dir_ctl= $$(pwd)" ;
+           echo "model_id_sim= ${model_id_sim}" ;
            cd ../run/sim_${model_id_sim}_20170701 ;
            echo "current_dir_run= $$(pwd)" ;
            sbatch tsmp2.job > run.jobid ;
