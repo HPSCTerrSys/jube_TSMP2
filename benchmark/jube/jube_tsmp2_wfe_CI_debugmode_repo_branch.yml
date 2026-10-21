@@ -103,31 +103,34 @@ parameterset:
       - {name: system_name, tag: juwels, _: JUWELS}
       - {name: system_name, tag: jupiter, _: JUPITER}
       - {name: system_name, tag: jusuf, _: JUSUF}
+      - {name: system_name, tag: juwelsbooster, _: JUWELSBOOSTER} 
 
       - {name: taskspernode, tag: gpu, _: 4}
       - {name: taskspernode, tag: jurecadc, _: 128}
       - {name: taskspernode, tag: juwels, _: 48}
       - {name: taskspernode, tag: jupiter, _: 288}
       - {name: taskspernode, tag: jusuf, _: 128}
+      - {name: taskspernode, tag: juwelsbooster, _: 48}
       
       - {name: threadspertask, tag: gpu, _: 4}
       - {name: threadspertask, tag: jurecadc, _: 128}
       - {name: threadspertask, tag: juwels, _: 48}
       - {name: threadspertask, tag: jupiter, _: 288}
       - {name: threadspertask, tag: jusuf, _: 128}
+      - {name: threadspertask, tag: juwelsbooster, _: 48}
       
       - {name: pfl_nodes, tag: parflowgpu, _: 1}
       - {name: pfl_nodes, tag: (jurecadc|juwels|jusuf)+!parflowgpu, _: 2}
       - {name: pfl_nodes, tag: jupiter, _: 1}
  
-      - {name: clm_nodes, tag: jurecadc|juwels|jusuf, _: 1}
+      - {name: clm_nodes, tag: jurecadc|juwels|jusuf|juwelsbooster, _: 1}
       - {name: clm_nodes, tag: jupiter, _: 1}  
 
       - {name: ico_nodes, tag: icongpu, _: 1}
-      - {name: ico_nodes, tag: (jurecadc|juwels|jusuf)+!icongpu, _: 3}
+      - {name: ico_nodes, tag: (jurecadc|juwels|jusuf|juwelsbooster)+!icongpu, _: 3}
       - {name: ico_nodes, tag: jupiter+!icongpu, _: 1}
 
-      - {name: root_storage, tag: jurecadc|jusuf|juwels, _: "/p/project1/cslts/shared_data/CI_TSMP2"}
+      - {name: root_storage, tag: jurecadc|jusuf|juwels|juwelsbooster, _: "/p/project1/cslts/shared_data/CI_TSMP2"}
       - {name: root_storage, tag: jupiter, _: "/e/project1/eessx/shared_data/CI_TSMP2"}
 
       - {name: bin_storage, _: "${root_storage}/bin"}      
