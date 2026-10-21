@@ -249,18 +249,19 @@ parameterset:
     - {name: bench_queue, tag: jurecadc, _: dc-cpu}
     - {name: bench_queue, tag: juwels, _: batch}
     - {name: bench_queue, tag: jusuf, _: batch}
-    - {name: bench_queue, tag: jupiter, _: booster}
+    - {name: bench_queue, tag: jupiter|juwelsbooster, _: booster}
     # Bench gpu queues: 
     - {name: bench_queue, tag: jurecadc, _: dc-gpu}
     - {name: bench_queue, tag: juwels, _: booster}
     - {name: bench_queue, tag: jusuf, _: gpus}
-    - {name: bench_queue, tag: jupiter, _: booster}
+    - {name: bench_queue, tag: jupiter|juwelsbooster, _: booster}
 
     # Change account     
     - {name: bench_account, tag: jurecadc, _: slts}
     - {name: bench_account, tag: juwels, _: slts}
     - {name: bench_account, tag: jusuf, _: slts}
     - {name: bench_account, tag: jupiter, _: eessx}
+    - {name: bench_account, tag: juwels, _: slts}
     
     # Define parameter for the number of nodes
     - {name: variant, tag: single, _: single}
