@@ -9,6 +9,7 @@ dos:
            mkdir -p TSMP2_workflow-engine/dta/forcing/icon/latbc ;
            ln -sf ${root_storage}/download_data/forcing/eclm/forcing TSMP2_workflow-engine/dta/forcing/eclm/forcing ;
            ln -sf ${root_storage}/download_data/forcing/icon/latbc/201707 TSMP2_workflow-engine/dta/forcing/icon/latbc/201707 ;
+           ln -sf ${root_storage}/download_data/forcing/icon/radiation TSMP2_workflow-engine/dta/forcing/icon/radiation ;
            ln -sf ${root_storage}/download_data/restart/20170630 TSMP2_workflow-engine/dta/restart/20170630 ;
            cd ${wfe_dir} ;
            git submodule update --init ;
