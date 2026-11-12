@@ -170,16 +170,16 @@ parameterset:
     parameter: 
   #  
   # 2.a For the build command: TO DO add parflowGPU
-    - {name: combination_str, _: --eclm}
-    - {name: combination_str, tag: icon+(!eclm+!parflow+!parflowgpu), _: --icon}
-    - {name: combination_str, tag: eclm+(!icon+!parflow+!parflowgpu), _: --eclm}
-    - {name: combination_str, tag: parflow+(!icon+!eclm+!parflowgpu), _: --parflow}
-    - {name: combination_str, tag: icon+eclm+(!parflow+!parflowgpu), _: --icon --eclm}
-    - {name: combination_str, tag: eclm+parflow+(!icon+!parflowgpu), _: --parflow --eclm}
-    - {name: combination_str, tag: icon+eclm+parflow+(!parflowgpu), _: --icon --eclm --parflow}
-    - {name: combination_str, tag: parflowgpu+(!icon+!eclm+!parflow), _: --parflowGPU}
-    - {name: combination_str, tag: parflowgpu+eclm+(!icon+!parflow), _: --eclm --parflowGPU}
-    - {name: combination_str, tag: parflowgpu+icon+eclm+!parflow, _: --icon --eclm --parflowGPU}
+    - {name: combination_str, _: eclm}
+    - {name: combination_str, tag: icon+(!eclm+!parflow+!parflowgpu), _: icon}
+    - {name: combination_str, tag: eclm+(!icon+!parflow+!parflowgpu), _: eclm}
+    - {name: combination_str, tag: parflow+(!icon+!eclm+!parflowgpu), _: parflow}
+    - {name: combination_str, tag: icon+eclm+(!parflow+!parflowgpu), _: icon eclm}
+    - {name: combination_str, tag: eclm+parflow+(!icon+!parflowgpu), _: parflow eclm}
+    - {name: combination_str, tag: icon+eclm+parflow+(!parflowgpu), _: icon eclm parflow}
+    - {name: combination_str, tag: parflowgpu+(!icon+!eclm+!parflow), _: parflowGPU}
+    - {name: combination_str, tag: parflowgpu+eclm+(!icon+!parflow), _: eclm parflowGPU}
+    - {name: combination_str, tag: parflowgpu+icon+eclm+!parflow, _: icon eclm parflowGPU}
   #
     # 2.b Model ID for build:
     - {name: model_id, _: eCLM}
@@ -203,7 +203,7 @@ parameterset:
     - {name: model_id_sim, tag: icon+eclm+parflow+!parflowgpu, _: iconeclmparflow} 
     - {name: model_id_sim, tag: parflowgpu+(!icon+!eclm+!parflow), _: parflow}
     - {name: model_id_sim, tag: parflowgpu+eclm+(!icon+!parflow), _: eclmparflow} # eclmparflowgpu, only when TSMP2_workflow-engine has been modified to run parflowGPU
-    - {name: model_id_sim, tag: parflowgpu+icon+eclm+!parflow, _: iconeclmparflow # iconeclmparflowgpu
+    - {name: model_id_sim, tag: parflowgpu+icon+eclm+!parflow, _: iconeclmparflow} # iconeclmparflowgpu
   #
   # 2.c Environment:
     - {name: env_str, _: jsc.2025.gnu.openmpi}                                          
@@ -299,17 +299,17 @@ step:
     do: !include steps/execute.yml:["dos"]
 
  # 4. Run test GPU
-  - name: execute
-    tag: (full|run)+gpu  
-    depend: [download,verifybuild]
-    use:
-      - systemInfo
-      - inputParam
-      - combinationTsmp
-      - testcaseInfo
-      - finished_run
-      - executeset
-    do: !include steps/executegpu.yml:["dos"]    
+ # - name: execute
+ #   tag: (full|run)+gpu  
+ #   depend: [download,verifybuild]
+ #   use:
+ #     - systemInfo
+ #     - inputParam
+ #     - combinationTsmp
+ #     - testcaseInfo
+ #     - finished_run
+ #     - executeset
+ #   do: !include steps/execute_gpu.yml:["dos"]    
       
  # 5. Verify the results of the simulation
   - name: verify
