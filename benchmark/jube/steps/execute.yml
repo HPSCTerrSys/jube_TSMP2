@@ -7,6 +7,7 @@ dos:
            wfe_dir=$(realpath TSMP2_workflow-engine) ;
            mkdir -p TSMP2_workflow-engine/dta/forcing/eclm ;
            mkdir -p TSMP2_workflow-engine/dta/forcing/icon/latbc ;
+           mkdir -p TSMP2_workflow-engine/dta/forcing/icon/radiation ;
            ln -sf ${root_storage}/download_data/forcing/eclm/forcing TSMP2_workflow-engine/dta/forcing/eclm/forcing ;
            ln -sf ${root_storage}/download_data/forcing/icon/latbc/201707 TSMP2_workflow-engine/dta/forcing/icon/latbc/201707 ;
            ln -sf ${root_storage}/download_data/forcing/icon/radiation TSMP2_workflow-engine/dta/forcing/icon/radiation ;
